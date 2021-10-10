@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: nginx
-          image: nginx:latest # 배포할 이미지
+          image: nginx # 배포할 이미지
           ports:
             - containerPort: 80
 
