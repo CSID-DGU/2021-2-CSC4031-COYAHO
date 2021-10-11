@@ -1201,19 +1201,21 @@ serverFiles:
       - /etc/config/alerts
 
     scrape_configs:
-      - job_name: 'federate'
-        scrape_interval: 15s
-
-        honor_labels: true
-        metrics_path: '/federate'
-
-        # params:
-        #   'match[]':
-        #     - '{job="prometheus"}'
-
+      - job_name: prometheus
         static_configs:
           - targets:
-            - "hostip" #따옴표 없이
+            - localhost:9090
+
+    ##federation하려면 아래 내용을 공백 추가 없이 주석(#)만 삭제 후 위의 scrape_configs를 주석 처리
+      #- job_name: 'federate'
+      #  scrape_interval: 15s
+
+      #  honor_labels: true
+      #  metrics_path: '/federate'
+
+      #  static_configs:
+      #    - targets:
+      #      - "target_ip" # 따옴표 없이 입력
 
       # A scrape configuration for running Prometheus on a Kubernetes cluster.
       # This uses separate scrape configs for cluster components (i.e. API server, node)
