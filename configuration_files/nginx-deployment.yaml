@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx # deployment 전체에 대한 label
+spec:
+  replicas: 3 # pod의 개수
+  selector:
+    # 각 pod에 대한 label = 어떤 pod가 deploying되고 있는지에 대한 태그
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx 
+    spec:
+      containers:
+        - name: nginx
+          image: nginx # 배포할 이미지
+          ports:
+            - containerPort: 80
