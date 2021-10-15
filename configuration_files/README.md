@@ -20,6 +20,7 @@ $ kubectl create namespace monitoring
 ### AWS, Azure, GCP
 ```
 $ helm install prometheus stable/prometheus -f 파일경로/prometheus-values.yaml --namespace monitoring
+$ kubectl get svc -n monitoring   //externalIP 및 port 확인
 ```
 
 ### OCI
