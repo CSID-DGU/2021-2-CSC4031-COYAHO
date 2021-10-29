@@ -18,7 +18,7 @@ To walk through a complete experience where this code is packaged into container
 
 <br>
 
-## **🔑Docker Image 만들기** (로컬에서 진행)
+## **🐳Docker Image 만들기** (로컬에서 진행)
 
 1. 디렉토리 변경
 
@@ -118,14 +118,51 @@ To walk through a complete experience where this code is packaged into container
 
 <br>
 
-## **🔑쿠버네티스 클러스터 만들기**
+## **🕸쿠버네티스 클러스터 만들고 배포하기**
 
-ACR과 연동해서 사용할 수 있도록
+> ### AWS
+
+<br>
+
+> ### Azure
+>
+> ACR과 연동해서 사용할 수 있도록
 
 1. 인증>클러스터 인프라>시스템에서 할당한 관리 id 선택
 2. 통합> ACR> 컨테이너 레지스트리 선택
 
 하여 클러스터 구성
+
+<br>
+클러스터와 연결하고
+
+```powershell
+kubectl apply -f azure-vote-all-in-one-redis.yaml
+```
+
+로 pod와 svc 생성
+
+> ### GCP
+
+<br>
+
+## **👀Autoscaling test**
+
+로드가 왔을 때 로드의 정보를 확실히 보고 애플리케이션을 확장할 수 있음 ▶ 쿠버네티스의 HPA 기능을 이용해서 얼마나 빠르게 컨테이너가 확장되는지 확인
+
+```powershell
+kubectl autoscale deployment --max=10 azure-vote-front --min=3
+```
+
+로드가 없을 때는 최소 3개 떠있고 로드가 추가로 들어올 경우 컨테이너가 최대 10개까지 늘어남
+
+로드를 주는 것은 azure의 로드 제너레이터를 이용하여 진행
+
+```powershell
+az container create -g <리소스 이름> -n loadtestnew --image azch/loadtest -e SERVICE_ENDPOINT=<external IP주소>  --restart-policy Never --no-wait
+```
+
+<br>
 
 ## Contributing
 
