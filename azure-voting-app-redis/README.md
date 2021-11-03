@@ -160,6 +160,17 @@ kubectl autoscale deployment --max=10 azure-vote-front --min=3
 
 ```powershell
 az container create -g <리소스 이름> -n loadtestnew --image azch/loadtest -e SERVICE_ENDPOINT=<external IP주소>  --restart-policy Never --no-wait
+ex) az container create -g coyaho -n loadtestnew --image azch/loadtest -e SERVICE_ENDPOINT=http://20.41.112.xx  --restart-policy Never --no-wait
+```
+
+- endpoint는 부하를 줄 부분이므로 azure-vote-front에 연결되어 있는 url 주소를 줌.
+- 새로 이미지를 만드는 것이기 때문에 loadtestnew로 설정
+- 컨테이너 이미지를 만들어서 이 이미지는 로드를 주는 역할을 함
+
+로드가 제대로 들어가는지 확인하기
+
+```powershell
+az container logs -g <리소스 이름> -n loadtestnew
 ```
 
 <br>
