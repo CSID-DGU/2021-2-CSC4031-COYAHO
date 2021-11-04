@@ -121,6 +121,46 @@ To walk through a complete experience where this code is packaged into container
 ## **🕸쿠버네티스 클러스터 만들고 배포하기**
 
 > ### AWS
+## Prerequisite
+1. eks 클러스터 
+2. IAM 생성(Administrator, AmazonEC2ContainerRegistryFullAccess, AmazonElasticContainerRegistryPublicFullAccess 넣어주자) 
+
+## 이미지 만들기
+이미지 만드는 과정은 로컬에서 진행했습니다. (폴더를 하나 만들어서 VS code사용)
+   ```powershell
+git clone https://github.com/Azure-Samples/azure-voting-app-redis.git
+cd azure-voting-app-redis
+docker-compose up -d
+docker images
+   ```
+   
+## ECR, 도커에 로그인 후 Tag, push
+```powershell
+aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/p8g9w4h0
+   ```
+   
+Tagging
+ ```powershell
+docker tag mcr.microsoft.com/azuredocs/azure-vote-front:v1 public.ecr.aws/p8g9w4h0/votingapp:aws-vote-front   
+  ```
+   ```powershell
+docker tag mcr.microsoft.com/azuredocs/azure-vote-front:v1 public.ecr.aws/p8g9w4h0/votingapp:redis
+  ```
+Push
+   ```powershell
+docker push public.ecr.aws/p8g9w4h0/votingapp:aws-vote-front 
+  ```
+   ```powershell
+docker push public.ecr.aws/p8g9w4h0/votingapp:redis
+  ```
+  
+## yaml파일 수정하고 배포하기
+
+1. azure-vote-all-in-one-redis.yaml 파일 수정
+image: ecr -> repo -> image 누르면 나오는 경로를 넣어줌
+
+2. 수정한 파일을 fork한 깃허브 repo에 업로드 후 Raw 버튼 누르기
+3. kubectl apply 명령어로 배포
 
 <br>
 
