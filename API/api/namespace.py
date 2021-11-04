@@ -1,30 +1,23 @@
 from flask import Blueprint, Flask, request
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
-import time
 from api import core_v1
+#import time
 
-namespace_api = Blueprint('namespace_api',__name__)
+namespace_api = Blueprint('namespace',__name__)
 
-@namespace_api.route('/', methods=['POST'])
-def namespaces():
-	namespace = request.form['name']
-	ret =  create_namespace(namespace)
-	if ret != None:
-		return "finish"
-	else:
-		return "fail"
-
-@namespace_api.route('/<namespace>', methods=['GET','DELETE'])
+@namespace_api.route('/<namespace>', methods=['POST', 'GET', 'DELETE'])
 def namespace(namespace):
-	if request.method == 'GET':
-		if read_namespace(namespace) != -1:
-			return "get"
-	else:
-		if delete_namespace(namespace) != -1:
-			return "delete"
-	return "fail"
+	if request.method == "POST":
+		return create_namespace(namespace)
 
+	elif request.method == "GET":
+		return get_namespace(namespace)
+
+	elif request.method == "DELETE":
+		return delete_namespace(namespace)
+
+#네임스페이스 생성
 def create_namespace(namespace):
 	body = {
 		"metadata" : {
@@ -32,10 +25,35 @@ def create_namespace(namespace):
 		}
 	}
 	try:
-		return core_v1.create_namespace(body=body)
-	except ApiException as ex:
-		return "error"
+		core_v1.create_namespace(body=body)
+	except ApiException as e:
+		return message_handler(message="fail to CREATE namespace", exception=e)
+	return message_handler(message="namespace created")
 
+#네임스페이스 조회
+def get_namespace(namespace):
+	try:
+		namespace_list = core_v1.read_namespace(namespace)
+		return namespace_list
+	except ApiException as e:
+		return message_handler(message="fail to GET namespace", exception=e)
+
+#네임스페이스 삭제
+def delete_namespace(namespace):
+	try:
+		core_v1.delete_namespace(namespace)
+	except ApiException as e:
+		return message_handler(message="fail to DELETE namespace", exception=e)
+
+#return할 메시지를 딕셔너리 형태로 처리
+def message_handler(**kwargs):
+	if kwargs['exception'] not in kwargs.keys():
+		return {'message' : kwargs['message']}
+	else:
+		return {'message' : kwargs['message'], 'error' : kwargs['exception']}
+
+'''
+기존 코드 임시 주석처리 추후 삭제예정
 def read_namespace(namespace, timeout = 30):
 	start_time = time.time()
 	while True:
@@ -68,3 +86,4 @@ def delete_namespace(namespace, timeout = 30):
 			if time.time() - start_time > timeout:
 				raise TimeoutError
 	return (-1)
+'''

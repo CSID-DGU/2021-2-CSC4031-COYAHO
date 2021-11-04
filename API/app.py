@@ -3,12 +3,16 @@ from api import namespace
 from api import core_v1
 
 app = Flask(__name__)
+
+#namespace 관련
 app.register_blueprint(namespace.namespace_api, url_prefix='/namespaces')
 
+#기본 페이지
 @app.route("/")
 def welcome():
     return "welcome to service"
 
+# pod 조회 예시
 @app.route("/deployment")
 def get_deploy():
     podlist=[]
@@ -19,5 +23,6 @@ def get_deploy():
     example={'podlist':podlist}
     return example
 
+#host='0.0.0.0',debug=True, port=80
 if __name__ == '__main__':
     app.run(host='0.0.0.0',debug=True, port=80)
