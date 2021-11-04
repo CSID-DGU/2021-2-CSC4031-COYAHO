@@ -1,3 +1,5 @@
+#namespace 생성해주는 부분 추가 필요
+#svc 바로 Loadbalancer로 해주는 부분 추가 필요
 apiVersion: apps/v1
 kind: Deployment
 metadata:
