@@ -46,7 +46,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: default
-    namespace: new
+    namespace: default
 roleRef:
   kind: ClusterRole
   name: pods-list
