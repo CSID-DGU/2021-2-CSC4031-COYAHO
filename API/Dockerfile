@@ -1,5 +1,6 @@
 FROM python:3.9
-MAINTAINER your_name "email@gmail.com"
+LABEL emale="mountainrabbit01@gmail.com"
+LABEL name="BK"
 
 #RUN apt-get update -y
 #RUN apt-get install -y python-pip python-dev build-essential
