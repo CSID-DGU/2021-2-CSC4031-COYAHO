@@ -1,3 +1,4 @@
+# -*-coding utf-8-*-
 from flask import Flask, request
 from api import namespace
 from api import core_v1

@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: flask
-        image: gcr.io/mystic-span-326003/votetest/dunno:latest
+        image: gcr.io/mystic-span-326003/votetest/target-flask:0.2
         ports:
           - containerPort: 80
 ---
@@ -38,8 +38,8 @@ metadata:
   name: pods-list
 rules:
 - apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["list"]
+  resources: ["pods","deployments","namespaces"]
+  verbs: ["get", "watch", "list", "create"]
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
