@@ -1,12 +1,12 @@
-# -*-coding utf-8-*-
 from flask import Flask, request
-from api import namespace
+from api import namespace, deployment
 from api import core_v1
 
 app = Flask(__name__)
 
 #namespace 관련
-app.register_blueprint(namespace.namespace_api, url_prefix='/namespaces')
+app.register_blueprint(namespace.namespace_api, url_prefix='/namespace')
+app.register_blueprint(deployment.deployment_api, url_prefix='/deployment')
 
 #기본 페이지
 @app.route("/")
@@ -14,7 +14,7 @@ def welcome():
     return "welcome to service"
 
 # pod 조회 예시
-@app.route("/deployment")
+@app.route("/pods")
 def get_deploy():
     podlist=[]
     print("Listing pods and IPs")

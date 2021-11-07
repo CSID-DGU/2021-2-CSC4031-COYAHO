@@ -1,6 +1,4 @@
-# -*-coding utf-8-*-
 from flask import Blueprint, Flask, request
-from kubernetes import client, config
 from kubernetes.client.rest import ApiException
 from api import core_v1
 #import time
@@ -33,17 +31,12 @@ def create_namespace(namespace):
 
 #네임스페이스 조회
 def get_namespace(namespace):
-    list_namespace=core_v1.read_namespace(namespace)
-    print(list_namespace)
-    return {'message':'got namespace'}
-'''
-    try:
-		namespace_list = core_v1.read_namespace(namespace)
-		return namespace_list
-	except ApiException as e:
-		#return message_handler(message="fail to GET namespace", exception=e)
-        return e
-'''
+    ret=core_v1.read_namespace(namespace)
+    list_namespace=[]
+    for i in ret.items:
+        list_namespace.append(i.metadata.name)
+	example = {'list_namespace':list_namespace}
+	return example
 
 #네임스페이스 삭제
 def delete_namespace(namespace):
