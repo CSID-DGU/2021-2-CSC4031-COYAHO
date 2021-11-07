@@ -35,13 +35,9 @@ def create_namespace(namespace):
 # 네임스페이스 조회
 
 
-def get_namespace(namespace):
-    ret = core_v1.read_namespace(namespace)
-    list_namespace = []
-    for i in ret.items:
-        list_namespace.append(i.metadata.name)
-        example = {'list_namespace': list_namespace}
-        return example
+def get_namespace():
+    list_namespace = core_v1.list_namespace()
+    return {'result': list_namespace}
 
 # 네임스페이스 삭제
 
@@ -56,7 +52,7 @@ def delete_namespace(namespace):
 
 
 def message_handler(**kwargs):
-    if kwargs['exception'] not in kwargs.keys():
+    if 'exception' not in kwargs.keys():
         return {'message': kwargs['message']}
     else:
         return {'message': kwargs['message'], 'error': kwargs['exception']}
