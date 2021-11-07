@@ -33,7 +33,7 @@ def create_deployment(**kwargs):
     # 시험용 코드이므로 작동확인 후 원하는 기능에 맞춰 수정예정
     with open(path.join(path.dirname(__file__), "test-deployment.yaml")) as f:
         # yaml파일 내에 ---로 분리된 부분이 존재하는 경우 load가 아니라 load_all 사용해야함
-        dep = yaml.safe_load_all(f)
+        dep = yaml.safe_load(f)
         resp = apps_v1.create_namespaced_deployment(
             body=dep, namespace=target_namespace)
     return {'message': "Deployment created. status='%s'" % resp.metadata.name}

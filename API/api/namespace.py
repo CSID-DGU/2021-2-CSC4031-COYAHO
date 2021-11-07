@@ -36,7 +36,10 @@ def create_namespace(namespace):
 
 
 def get_namespace():
-    list_namespace = core_v1.list_namespace()
+    ret = core_v1.list_namespace()
+    list_namespace=[]
+    for i in ret.items:
+        list_namespace.append(i.metadata.name)
     return {'result': list_namespace}
 
 # 네임스페이스 삭제
