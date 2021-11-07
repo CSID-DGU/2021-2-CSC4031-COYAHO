@@ -12,7 +12,7 @@ def namespace(namespace):
         return create_namespace(namespace)
 
     elif request.method == "GET":
-        return get_namespace(namespace)
+        return get_namespace()
 
     elif request.method == "DELETE":
         return delete_namespace(namespace)
@@ -32,7 +32,7 @@ def create_namespace(namespace):
         return message_handler(message="fail to CREATE namespace", exception=e)
     return message_handler(message="namespace created")
 
-# 네임스페이스 조회
+# 클러스터 내 모든 네임스페이스 조회
 
 
 def get_namespace():
