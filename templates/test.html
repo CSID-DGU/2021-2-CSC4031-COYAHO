@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title></title>
+</head>
+
+<body>
+	<div>
+		<div style="display: inline-block;">
+			<iframe id="main_frame" width="560" height="315" src="https://www.youtube.com/embed/rHux0gMZ3Eg"
+			title="YouTube video player" frameborder="0"
+			allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+			allowfullscreen></iframe>
+		</div>
+		<div style="display: inline-block;">
+			영상 1 : 8JJ101D3knE <br> 영상 2 : wBhS8OXtM5Q
+		</div>
+	</div>
+	<form>
+		Input cloud IP
+		<input id = "inputBar" type="text" name="ip">
+		<input type="button" value="Click" onclick="changeIframeUrl()">
+	</form>
+	<!--src= url_for 사용하여 test.js가져오기 test.js는 static폴더 안에 있음-->
+	<script src="{{url_for('static', filename='test.js')}}"></script>
+	<br>
+	<div>
+		유튜브 iframe 주소: https://www.youtube.com/embed/고유문자
+		<br>
+		-> 고정된 부분 이외의 고유문자만 입력하면 iframe 변경 가능
+		<br>
+		<br>
+		그라파나 iframe 주소: [아이피]/d-solo/UID/대시보드이름?orgId=1&refresh=10s&theme=light&panelId=164
+		<br>
+		-> 아이피 뒷부분은 고정 가능하므로 아이피만 입력해서 iframe 변경 가능
+	</div>
+</body>
+</html>
