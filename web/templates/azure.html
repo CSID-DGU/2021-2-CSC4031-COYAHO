@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Azure Dashboard</title>
+	<!-- <link href="style.css" type="text/css" rel="stylesheet"> -->
+	<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+	<header>
+		<div class="navbar">
+			<div class="nav"><a href="/"><span class="HL-half">HOME</span></a></div>
+			<div class="nav"><a href="/aws"><span class="HL-move">AWS</span></a></div>
+			<div class="nav"><a href="/azure"><span class="HL-move">Azure</span></a></div>
+			<div class="nav"><a href="/gcp"><span class="HL-move">GCP</span></a></div>
+		</div>
+	</header>
+	<div class="title-1">
+		∨ 클러스터 요약
+	</div>
+	<!-- cpu, 디스크, 노드별cpu, 노드별 메모리-->
+	<div class="container">
+		<div class="box-1">
+			<iframe src="http://34.133.131.183/d-solo/azure/azure?orgId=1&refresh=5s&theme=light&panelId=145" width="100%"
+				height="100%" frameborder="0"></iframe>
+		</div>
+		<div class="box-1">
+			<iframe src="http://34.133.131.183/d-solo/azure/azure?orgId=1&refresh=5s&theme=light&panelId=154" width="100%"
+				height="100%" frameborder="0"></iframe>
+		</div>
+		<div class="box-2">
+			<iframe src="http://34.133.131.183/d-solo/azure/azure?orgId=1&refresh=5s&theme=light&panelId=35" width="100%"
+				height="100%" frameborder="0"></iframe>
+		</div>
+		<div class="box-2">
+			<iframe src="http://34.133.131.183/d-solo/azure/azure?orgId=1&refresh=5s&theme=light&panelId=33" width="100%"
+				height="100%" frameborder="0"></iframe>
+		</div>
+	</div>
+	<br>
+	<div class="title-1">
+		∨ 노드 현황
+	</div>
+	<!-- 노드  -->
+	<div class="container">
+		<div>
+			<iframe src="http://34.133.131.183/d-solo/azure/azure?orgId=1&refresh=5s&theme=light&panelId=64" width="100%"
+				height="100%" frameborder="0"></iframe>
+		</div>
+	</div>
+	<br>
+	<div class="title-1">
+		∨ 네트워크
+	</div>
+	<!-- 초당 네트워크 트래픽, API 호출 -->
+	<div class="container">
+		<div class="box-2">
+			<iframe src="http://34.133.131.183/d-solo/azure/azure?orgId=1&refresh=5s&theme=light&panelId=133" width="100%"
+				height="100%" frameborder="0"></iframe>
+		</div>
+		<div class="box-2">
+			<iframe src="http://34.133.131.183/d-solo/azure/azure?orgId=1&refresh=5s&theme=light&panelId=164" width="100%"
+				height="100%" frameborder="0"></iframe>
+		</div>
+		<div class="box-2">
+			<iframe src="http://34.133.131.183/d-solo/azure/azure?orgId=1&theme=light&panelId=166" width="100%"
+				height="100%" frameborder="0"></iframe>
+		</div>
+
+	</div>
+	<footer>
+		Copyright (C) 2021. COYAHO. All rights reserved.&nbsp;
+		<a href="https://github.com/CSID-DGU/2021-2-CSC4031-COYAHO"><img
+		src="{{ url_for('static', filename='media/git.png')}}"></a>&nbsp;<span>github</span>
+	</footer>
+</body>
+</html>
