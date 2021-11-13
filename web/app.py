@@ -14,14 +14,12 @@ def register():
         return render_template("register.html")
     else:
         userid = request.form.get('userid')
-        aws_ip = request.form.get('aws_ip')
-        azure_ip = request.form.get('azure_ip')
-        gcp_ip = request.form.get('gcp_ip')
+        grafana_ip = request.form.get('grafana_ip')
         password = request.form.get('password')
         re_password = request.form.get('re_password')
         print(password) 
 
-        if not (userid and aws_ip and azure_ip and gcp_ip and password and re_password) :
+        if not (userid and grafana_ip and password and re_password) :
             return "모두 입력해주세요"
         elif password != re_password:
             return "비밀번호를 확인해주세요"
@@ -29,9 +27,7 @@ def register():
             fcuser = Fcuser()         
             fcuser.password = password          
             fcuser.userid = userid
-            fcuser.aws_ip = aws_ip
-            fcuser.azure_ip = azure_ip  
-            fcuser.gcp_ip = gcp_ip  
+            fcuser.grafana_ip = grafana_ip  
             db.session.add(fcuser)
             db.session.commit()
             return "회원가입 완료"
@@ -40,15 +36,18 @@ def register():
 
 @app.route('/aws')
 def aws():
-    return render_template('aws.html')
+    users = Fcuser.query.filter_by(userid='test').all()
+    return render_template('aws.html', users = users)
 
 @app.route('/azure')
 def azure():
-    return render_template('azure.html')
+    users = Fcuser.query.filter_by(userid='test').all()
+    return render_template('azure.html', users = users)
 
 @app.route('/gcp')
 def gcp():
-    return render_template('gcp.html')
+    users = Fcuser.query.filter_by(userid='test').all()
+    return render_template('gcp.html', users = users)
 
 if __name__ == "__main__":
     basedir = os.path.abspath(os.path.dirname(__file__))  
