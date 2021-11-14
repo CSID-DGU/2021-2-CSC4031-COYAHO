@@ -22,8 +22,8 @@
   "editable": true,
   "gnetId": 13770,
   "graphTooltip": 0,
-  "id": 9,
-  "iteration": 1636214989662,
+  "id": 7,
+  "iteration": 1636875091263,
   "links": [],
   "panels": [
     {
@@ -76,7 +76,7 @@
       },
       "gridPos": {
         "h": 3,
-        "w": 24,
+        "w": 8,
         "x": 0,
         "y": 1
       },
@@ -118,6 +118,146 @@
       "timeFrom": null,
       "timeShift": null,
       "title": "Pods",
+      "type": "stat"
+    },
+    {
+      "cacheTimeout": null,
+      "datasource": "azure",
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "rgb(255, 255, 255)",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 8,
+        "y": 1
+      },
+      "id": 1111,
+      "interval": null,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "background",
+        "fieldOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.1.6",
+      "targets": [
+        {
+          "expr": " count(kube_namespace_created)",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "{{pod}}",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": " Namespace",
+      "type": "stat"
+    },
+    {
+      "datasource": "azure",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 16,
+        "y": 1
+      },
+      "id": 1112,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "8.1.6",
+      "targets": [
+        {
+          "expr": "avg(\navg_over_time((sum without ()(kube_pod_container_status_ready{namespace=\"kube-system\",pod=~\".*.dashboard.*|.*.dns.*|kube.*|.*.calico.*|.*.flannel.*|.*.etcd.*\"}) \n/ \ncount without ()(kube_pod_container_status_ready{namespace=\"kube-system\",pod=~\".*.dashboard.*|.*.dns.*|kube.*|.*.calico.*|.*.flannel.*|.*.etcd.*\"}))[$duration:5m])\n)",
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Status",
       "type": "stat"
     },
     {
@@ -931,21 +1071,18 @@
       }
     }
   ],
-  "refresh": "5s",
+  "refresh": "10s",
   "schemaVersion": 30,
   "style": "dark",
-  "tags": [
-    "kubernetes",
-    "k8s"
-  ],
+  "tags": [],
   "templating": {
     "list": [
       {
         "allValue": null,
         "current": {
           "selected": false,
-          "text": "gke-cluster-1-default-pool-0aa12036-6zcv",
-          "value": "gke-cluster-1-default-pool-0aa12036-6zcv"
+          "text": "gke-cluster-1-default-pool-eed3a7b5-1q6p",
+          "value": "gke-cluster-1-default-pool-eed3a7b5-1q6p"
         },
         "datasource": "azure",
         "definition": "label_values(node_uname_info,kubernetes_node)",
@@ -1021,8 +1158,8 @@
         "allValue": null,
         "current": {
           "selected": false,
-          "text": "10.128.0.4:9100",
-          "value": "10.128.0.4:9100"
+          "text": "10.128.0.3:9100",
+          "value": "10.128.0.3:9100"
         },
         "datasource": "azure",
         "definition": "query_result(node_uname_info{kubernetes_node=\"$node\"})",
@@ -1081,8 +1218,8 @@
         "allValue": null,
         "current": {
           "selected": false,
-          "text": "nginx-deployment-7848d4b86f-jvcww",
-          "value": "nginx-deployment-7848d4b86f-jvcww"
+          "text": "nginx-deployment-7848d4b86f-r7hss",
+          "value": "nginx-deployment-7848d4b86f-r7hss"
         },
         "datasource": "azure",
         "definition": "label_values(kube_pod_info{namespace=\"$namespace\"},  pod)",
@@ -1111,8 +1248,8 @@
         "allValue": null,
         "current": {
           "selected": false,
-          "text": "gke-cluster-1-default-pool-0aa12036-6zcv",
-          "value": "gke-cluster-1-default-pool-0aa12036-6zcv"
+          "text": "gke-cluster-1-default-pool-eed3a7b5-1q6p",
+          "value": "gke-cluster-1-default-pool-eed3a7b5-1q6p"
         },
         "datasource": "azure",
         "definition": "label_values(node_uname_info,kubernetes_node)",
@@ -1159,5 +1296,5 @@
   "timezone": "",
   "title": "azure",
   "uid": "azure",
-  "version": 3
+  "version": 1
 }
