@@ -21,10 +21,19 @@
 		∨ 파드 현황
 	</div>
 	<!-- cpu, 디스크, 노드별cpu, 노드별 메모리-->
-	<div class="container">
-		<iframe src="http://{{user.grafana_ip}}/d-solo/azure/azure?orgId=1&refresh=5s&theme=light&panelId=111" width="100%"
-			height="100%" frameborder="0"></iframe>
-	</div>
+	<div class="container" style="	position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-around;">
+		<div class="box-3">
+			<iframe src="http://{{user.grafana_ip}}/d-solo/aws/aws?orgId=1&refresh=5s&theme=light&panelId=111"
+				width="100%" height="100%" frameborder="0"></iframe>
+		</div>
+		<div class="box-3">
+			<iframe src="http://{{user.grafana_ip}}/d-solo/aws/aws?orgId=1&refresh=5s&theme=light&panelId=1111"
+				width="100%" height="100%" frameborder="0"></iframe>
+		</div>
+		<div class="box-3">
+			<iframe src="http://{{user.grafana_ip}}/d-solo/aws/aws?orgId=1&refresh=5s&theme=light&panelId=1112"
+				width="100%" height="100%" frameborder="0"></iframe>
+		</div>
 	</div>
 	<br>
 	<div class="title-1">
