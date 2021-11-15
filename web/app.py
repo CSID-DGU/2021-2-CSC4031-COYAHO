@@ -2,51 +2,62 @@ from flask import Flask, render_template, request, redirect
 from models import db
 import os
 from models import Fcuser
+from flask import session
+from flask_wtf.csrf import CSRFProtect
+from forms import RegisterForm, LoginForm
 app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return render_template("index.html")
+    userid = session.get('userid', None)
+    return render_template("index.html", userid=userid)
 
 @app.route('/register', methods=['GET','POST'])
 def register():
-    if request.method == 'GET':
-        return render_template("register.html")
-    else:
-        userid = request.form.get('userid')
-        grafana_ip = request.form.get('grafana_ip')
-        password = request.form.get('password')
-        re_password = request.form.get('re_password')
-        print(password) 
+    form = RegisterForm()
+    if form.validate_on_submit():
+        fcuser = Fcuser()
+        fcuser.userid = form.data.get('userid')
 
-        if not (userid and grafana_ip and password and re_password) :
-            return "모두 입력해주세요"
-        elif password != re_password:
-            return "비밀번호를 확인해주세요"
-        else: 
-            fcuser = Fcuser()         
-            fcuser.password = password          
-            fcuser.userid = userid
-            fcuser.grafana_ip = grafana_ip  
-            db.session.add(fcuser)
-            db.session.commit()
-            return "회원가입 완료"
+        fcuser.password = form.data.get('password')
+        fcuser.grafana_ip = form.data.get('grafana_ip')
 
-    # return redirect(url_for('/register'))
+        print(fcuser.userid,fcuser.password)  
+        db.session.add(fcuser)  
+        db.session.commit() 
+        return render_template('index.html')
+    return render_template('register.html', form=form)
+
+@app.route('/login', methods=['GET','POST'])  
+def login():  
+    form = LoginForm() 
+    if form.validate_on_submit():
+        session['userid'] = form.data.get('userid') 
+        
+        return redirect('/')
+    return render_template('login.html', form=form)
+
+@app.route('/logout',methods=['GET'])
+def logout():
+    session.pop('userid',None)
+    return redirect('/')
 
 @app.route('/aws')
 def aws():
-    users = Fcuser.query.filter_by(userid='test').all()
+    userid = session.get('userid', None)
+    users = Fcuser.query.filter_by(userid=userid).all()
     return render_template('aws.html', users = users)
 
 @app.route('/azure')
 def azure():
-    users = Fcuser.query.filter_by(userid='test').all()
+    userid = session.get('userid', None)
+    users = Fcuser.query.filter_by(userid=userid).all()
     return render_template('azure.html', users = users)
 
 @app.route('/gcp')
 def gcp():
-    users = Fcuser.query.filter_by(userid='test').all()
+    userid = session.get('userid', None)
+    users = Fcuser.query.filter_by(userid=userid).all()
     return render_template('gcp.html', users = users)
 
 if __name__ == "__main__":
@@ -54,7 +65,11 @@ if __name__ == "__main__":
     dbfile = os.path.join(basedir, 'db.sqlite') 
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + dbfile
     app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True     
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False   
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SECRET_KEY'] = 'wcsfeufhwiquehfdx'
+
+    csrf = CSRFProtect()
+    csrf.init_app(app)   
 
     db.init_app(app) 
     db.app = app
