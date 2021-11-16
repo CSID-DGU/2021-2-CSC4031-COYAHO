@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request
 from werkzeug.utils import secure_filename
+import json
 app = Flask(__name__)
 
 
@@ -14,6 +15,12 @@ def uploader_file():
         f = request.files['file']
         f.save(secure_filename(f.filename))
         return 'file uploaded successfully'
+
+
+@app.route('/yaml_test', methods=['POST'])
+def test():
+    print(request.get_json())
+    return {'message': ' '}
 
 
 if __name__ == '__main__':

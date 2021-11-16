@@ -17,3 +17,4 @@ def post2():
     yaml_data = request.get_json()
     utils.create_from_yaml(k8s_client=client, yaml_objects=[yaml_data])
     return {'yaml': yaml_data}
+
