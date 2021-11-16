@@ -16,7 +16,7 @@ spec:
         "beta.kubernetes.io/os": linux
       containers:
         - name: azure-vote-back
-          image: gcr.io/mystic-span-326003/votetest:vote
+          image: gcr.io/mystic-span-326003/votetest:back
           env:
             - name: ALLOW_EMPTY_PASSWORD
               value: "yes"
@@ -57,7 +57,7 @@ spec:
         "beta.kubernetes.io/os": linux
       containers:
         - name: azure-vote-front
-          image: gcr.io/mystic-span-326003/votetest:latest
+          image: gcr.io/mystic-span-326003/votetest:front
           ports:
             - containerPort: 80
           resources:
