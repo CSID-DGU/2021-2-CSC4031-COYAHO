@@ -1,6 +1,7 @@
 from flask import Flask, request
 from api import namespace, deployment, restore
 from api import core_v1
+from api import utils
 
 app = Flask(__name__)
 
@@ -25,6 +26,12 @@ def get_deploy():
             [i.status.pod_ip, i.metadata.namespace, i.metadata.name])
     example = {'podlist': podlist}
     return example
+
+
+@app.route("/test_restore")
+def test():
+    utils.create_from_yaml.create_from_yaml()
+    return {'test': 'success'}
 
 
 # host='0.0.0.0',debug=True, port=80
