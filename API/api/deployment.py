@@ -1,17 +1,12 @@
 from flask import Blueprint, request
 from api import apps_v1
-from os import path
-import yaml
 
 deployment_api = Blueprint('deployment', __name__)
 
-
-@deployment_api.route('/<deployment>', methods=['POST', 'GET', 'DELETE'])
+# 아래 경로는 현재 미사용
+@deployment_api.route('/<deployment>', methods=['GET', 'DELETE'])
 def deployment(deployment):
-    if request.method == "POST":
-        return create_deployment2()
-
-    elif request.method == "GET":
+    if request.method == "GET":
         return get_deployment()
 
     elif request.method == "DELETE":
@@ -20,13 +15,22 @@ def deployment(deployment):
 # yaml 불러와 디플로이먼트 생성
 
 
-def create_deployment2(**kwargs):
+@deployment_api.route('/post', methods=['POST'])
+def create_deployment():
+    # namespace가 query string으로 전달되지 않았을 경우 default namespace에 deploy 생성
+    # json으로 dictionary 형태로 변환된 yaml 파일 전달받음
+    namespace = request.args.get('namespace')
     yaml_data = request.get_json()
+
+    if not namespace:
+        namespace = "default"
+    # deployment 생성
     resp = apps_v1.create_namespaced_deployment(
-        body=yaml_data, namespace="default")
+        body=yaml_data, namespace=namespace)
     return {'message': "Deployment created. status='%s'" % resp.metadata.name}
 
 
+'''
 def create_deployment(**kwargs):
     if 'namespace' not in kwargs.keys():
         target_namespace = 'default'
@@ -40,6 +44,8 @@ def create_deployment(**kwargs):
         resp = apps_v1.create_namespaced_deployment(
             body=dep, namespace=target_namespace)
     return {'message': "Deployment created. status='%s'" % resp.metadata.name}
+
+'''
 
 
 def get_deployment():
