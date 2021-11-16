@@ -9,19 +9,22 @@ deployment_api = Blueprint('deployment', __name__)
 @deployment_api.route('/<deployment>', methods=['POST', 'GET', 'DELETE'])
 def deployment(deployment):
     if request.method == "POST":
-        target_namespace = request.args.get('namespace')
-        if target_namespace:
-            return create_deployment(namespace=target_namespace)
-        else:
-            return create_deployment()
+        return create_deployment2()
 
     elif request.method == "GET":
-        return get_deployment(deployment)
+        return get_deployment()
 
     elif request.method == "DELETE":
-        return delete_deployment(deployment)
+        return delete_deployment()
 
 # yaml 불러와 디플로이먼트 생성
+
+
+def create_deployment2(**kwargs):
+    yaml_data = request.get_json()
+    resp = apps_v1.create_namespaced_deployment(
+        body=yaml_data, namespace="default")
+    return {'message': "Deployment created. status='%s'" % resp.metadata.name}
 
 
 def create_deployment(**kwargs):

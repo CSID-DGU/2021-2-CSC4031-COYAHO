@@ -1,5 +1,5 @@
 from flask import Flask, request
-from api import namespace, deployment, restore
+from api import namespace, deployment, restore, service
 from api import core_v1
 
 app = Flask(__name__)
@@ -8,6 +8,7 @@ app = Flask(__name__)
 app.register_blueprint(namespace.namespace_api, url_prefix='/namespace')
 app.register_blueprint(deployment.deployment_api, url_prefix='/deployment')
 app.register_blueprint(restore.restore_api, url_prefix='/restore')
+app.register_blueprint(service.service_api, url_prefix='/service')
 
 # 기본 페이지
 @app.route("/")
