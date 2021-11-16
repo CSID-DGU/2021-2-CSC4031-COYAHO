@@ -1,5 +1,5 @@
 from flask import Blueprint, request
-from api import utils
+from kubernetes import utils
 
 restore_api = Blueprint('restore', __name__)
 
