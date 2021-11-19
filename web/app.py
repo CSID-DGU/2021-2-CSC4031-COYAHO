@@ -24,6 +24,8 @@ def get_url(prometheus_url):
     return prometheus_url
 
 
+# 각 클라우드 connection check하는 코드
+# connect 될 때 True, 안되면 False
 aws = True
 azure = True
 gcp = True
