@@ -15,14 +15,14 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: azure-vote-front
+            name: prometheus-server
             port:
               number: 80
       - path: /hello-world-two(/|$)(.*)
         pathType: Prefix
         backend:
           service:
-            name: azure-vote-back
+            name: flask-service
             port:
               number: 80
       - path: /(.*)
