@@ -58,7 +58,7 @@ body{
 	display: block;
 	padding: 10px;
 	margin: 10px;
-	/*	text-align: center;*/
+	/* text-align: center; */
 }
 
 .box-1 {
@@ -75,7 +75,7 @@ body{
 /*	background-color: red;*/
 	padding: 5px;
 	margin: 5px;
-	width: 30%;
+	width: 20%;
 	height:30%;
 }
 
@@ -113,18 +113,69 @@ body{
 	height: 80%;
 	min-height: 100px;
 	background-color: lightgrey;
-	opacity: 0.5;
+	opacity: 0.65;
 	border-radius: 10px;
 	text-align: center;
+
+	position: relative;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
 }
 
-.button-1{
+/* .button-1{
 	color: white;
 	background: green;
 	outline: none;
 	box-shadow: none;
-	border-radius: 5px;
+	padding: 0 10px 0 10px;
+	margin: 50px;
+	
+} */
+
+.btn-logout{
+	color: black;
+	font-weight: bold;
 }
+
+.btn-logout a:link{
+	text-decoration: none;
+	color: black;
+}
+
+.btn-logout a:visited{
+	text-decoration: none;
+	color: black;
+}
+
+.btn-grad {
+	background-image: linear-gradient(to right, #485563 0%, #29323c  51%, #485563  100%)
+}
+
+.btn-grad {
+	font-weight: bold;
+   cursor: pointer;
+   margin: 10px;
+   padding: 15px 45px;
+   text-align: center;
+   text-transform: uppercase;
+   transition: 0.5s;
+   background-size: 200% auto;
+   color: white;            
+   box-shadow: 0 0 20px #eee;
+   border-radius: 5px;
+   display: block;
+   border:none;
+   outline: none;
+   box-shadow: none;
+ }
+
+ .btn-grad:hover {
+   background-position: right center; /* change the direction of the change here */
+   color: #fff;
+   text-decoration: none;
+ }
 
 footer{
 	width: 100%;
@@ -164,3 +215,4 @@ footer span{
 	width: 100%;
 	transition: width .3s;
 }
+
