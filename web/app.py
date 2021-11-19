@@ -1,4 +1,6 @@
-from flask import Flask, render_template, request, redirect
+from collections import UserDict
+from flask import Flask, render_template, request, redirect, flash
+import flask
 from models import db
 import os
 import requests
@@ -21,16 +23,22 @@ def index():
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
-        fcuser = Fcuser()
-        fcuser.userid = form.data.get('userid')
+        user = Fcuser.query.filter_by(userid = form.userid.data).first()
 
-        fcuser.password = form.data.get('password')
-        fcuser.grafana_ip = form.data.get('grafana_ip')
+        if user:
+            flash('이미 존재하는 아이디입니다.')
 
-        print(fcuser.userid, fcuser.password)
-        db.session.add(fcuser)
-        db.session.commit()
-        return render_template('index.html')
+        else:
+            fcuser = Fcuser()
+            fcuser.userid = form.data.get('userid')
+
+            fcuser.password = form.data.get('password')
+            fcuser.grafana_ip = form.data.get('grafana_ip')
+
+            print(fcuser.userid,fcuser.password)  
+            db.session.add(fcuser)  
+            db.session.commit() 
+            return render_template('index.html')
     return render_template('register.html', form=form)
 
 
@@ -38,9 +46,13 @@ def register():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        session['userid'] = form.data.get('userid')
+        user = Fcuser.query.filter_by(userid=form.userid.data).first()
 
-        return redirect('/')
+        if user is not None and user.password == form.data.get('password'):
+            session['userid'] = form.data.get('userid') 
+            return redirect('/')
+        else:
+            flash('아이디 또는 비밀번호가 일치하지 않습니다.')
     return render_template('login.html', form=form)
 
 
