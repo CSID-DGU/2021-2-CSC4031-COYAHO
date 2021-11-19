@@ -1,4 +1,6 @@
-from flask import Flask, render_template, request, redirect
+from collections import UserDict
+from flask import Flask, render_template, request, redirect, flash
+import flask
 from models import db
 import os
 import requests
@@ -7,9 +9,81 @@ import time
 from models import Fcuser
 from flask import session
 from flask_wtf.csrf import CSRFProtect
-from forms import RegisterForm, LoginForm
+from forms import RegisterForm, LoginForm, UploadForm
 from werkzeug.utils import secure_filename
+import threading
+
 app = Flask(__name__)
+
+
+aws_prometheus_url = "a790d6655f63c401c86fb7f46231d257-1084231655.us-west-2.elb.amazonaws.com"
+azure_prometheus_url = "20.196.224.1471"
+gcp_prometheus_url = "34.121.224.0"
+
+
+def get_url(prometheus_url):
+    return prometheus_url
+
+
+aws = True
+azure = True
+gcp = True
+
+
+def azure_connect_check():
+    global azure
+    if azure:
+        try:
+            res = requests.get("http://"+get_url(azure_prometheus_url))
+            print("azure "+str(res.status_code))
+        except requests.Timeout:
+            print("azure timeout")
+            pass
+        except requests.ConnectionError:
+            print("azure connectionerror")
+            recovery()
+            azure = False
+            pass
+        finally:
+            threading.Timer(20, azure_connect_check).start()
+
+
+def aws_connect_check():
+    global aws
+    if aws:
+        try:
+            res = requests.get("http://"+get_url(aws_prometheus_url))
+            print("aws "+str(res.status_code))
+
+        except requests.Timeout:
+            print("aws timeout")
+            pass
+        except requests.ConnectionError:
+            print("aws connectionerror")
+            # recovery()
+            aws = False
+            pass
+        finally:
+            threading.Timer(20, aws_connect_check).start()
+
+
+def gcp_connect_check():
+    global gcp
+    if gcp:
+        try:
+            res = requests.get("http://"+get_url(gcp_prometheus_url))
+            print("gcp "+str(res.status_code))
+
+        except requests.Timeout:
+            print("gcp timeout")
+            pass
+        except requests.ConnectionError:
+            print("gcp connectionerror")
+            # recovery()
+            gcp = False
+            pass
+        finally:
+            threading.Timer(20, gcp_connect_check).start()
 
 
 @app.route('/')
@@ -22,16 +96,22 @@ def index():
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
-        fcuser = Fcuser()
-        fcuser.userid = form.data.get('userid')
+        user = Fcuser.query.filter_by(userid=form.userid.data).first()
 
-        fcuser.password = form.data.get('password')
-        fcuser.grafana_ip = form.data.get('grafana_ip')
+        if user:
+            flash('이미 존재하는 아이디입니다.')
 
-        print(fcuser.userid, fcuser.password)
-        db.session.add(fcuser)
-        db.session.commit()
-        return render_template('index.html')
+        else:
+            fcuser = Fcuser()
+            fcuser.userid = form.data.get('userid')
+
+            fcuser.password = form.data.get('password')
+            fcuser.grafana_ip = form.data.get('grafana_ip')
+
+            print(fcuser.userid, fcuser.password)
+            db.session.add(fcuser)
+            db.session.commit()
+            return render_template('index.html')
     return render_template('register.html', form=form)
 
 
@@ -39,9 +119,13 @@ def register():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        session['userid'] = form.data.get('userid')
+        user = Fcuser.query.filter_by(userid=form.userid.data).first()
 
-        return redirect('/')
+        if user is not None and user.password == form.data.get('password'):
+            session['userid'] = form.data.get('userid')
+            return redirect('/')
+        else:
+            flash('아이디 또는 비밀번호가 일치하지 않습니다.')
     return render_template('login.html', form=form)
 
 
@@ -72,11 +156,16 @@ def gcp():
     return render_template('gcp.html', users=users)
 
 # 파일 업로드 부분 template
+
+
 @app.route('/upload')
 def upload_file():
-    return render_template('file_upload.html')
+    form = UploadForm()
+    return render_template('file_upload.html', form=form)
 
 # 파일 업로드 수행
+
+
 @app.route('/fileuploader', methods=['GET', 'POST'])
 def uploader_file():
     if request.method == "POST":
@@ -87,13 +176,15 @@ def uploader_file():
         return 'file uploaded successfully'
 
 # 파일 보내기
-@app.route('/recovery')
+
+
+# @app.route('/recovery')
 def recovery():
     # 쿼리스트링으로 ip주소 받음
     target_namespace = request.args.get('namespace')  # 이 부분 추가작성 필요
     ip_address = request.args.get('ip_address')
     # 해당 아이피로 전송
-    yaml_file_dir = './yaml/recovery.yaml'
+    yaml_file_dir = './azure-vote-all-in-one-redis.yaml'
 
     sample_headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.1.2222.33 Safari/537.36",
@@ -112,7 +203,7 @@ def recovery():
             kind = dep[i]['kind'].lower()
             send_request(target_URL=ip_address,
                          kind=kind, yaml_data=(dep[i]))
-
+    print('okay')
     return 'file sent successfully'
 
 
@@ -122,7 +213,7 @@ if __name__ == "__main__":
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + dbfile
     app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SECRET_KEY'] = 'wcsfeufhwiquehfdx'
+    app.config['SECRET_KEY'] = 'dev'
 
     csrf = CSRFProtect()
     csrf.init_app(app)
@@ -130,6 +221,11 @@ if __name__ == "__main__":
     db.init_app(app)
     db.app = app
     db.create_all()
+
+    azure_connect_check()
+    # aws_connect_check()
+    # gcp_connect_check()
+
 
 # 이 부분 추후 도커 패키징 시 kubernetes config에 따라 수정 필요
     app.run(host='127.0.0.1', port=5000, debug=True)

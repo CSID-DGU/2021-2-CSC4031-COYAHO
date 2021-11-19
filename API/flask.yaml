@@ -21,7 +21,8 @@ spec:
     spec:
       containers:
         - name: flask
-          image: gcr.io/mystic-span-326003/votetest/apitest:latest
+          # image: gcr.io/mystic-span-326003/votetest/target-flask:0.9
+          image: coyahov2.azurecr.io/apitestv2:latest
           ports:
             - containerPort: 7000
 ---
@@ -38,13 +39,14 @@ spec:
       name: http
   selector:
     app: flask
+  type: LoadBalancer
 ---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: pods-list
 rules:
-  - apiGroups: ["", "apps", "utils"]
+  - apiGroups: ["", "apps"]
     resources: ["pods", "deployments", "namespaces", "services"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 ---
