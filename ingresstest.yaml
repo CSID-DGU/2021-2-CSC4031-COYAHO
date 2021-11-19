@@ -11,20 +11,27 @@ spec:
   rules:
   - http:
       paths:
-      - path: /hello-world-one(/|$)(.*)
+      - path: /prometheus(/|$)(.*)
         pathType: Prefix
         backend:
           service:
             name: prometheus-server
             port:
               number: 80
-      - path: /hello-world-two(/|$)(.*)
+      - path: /flask_api(/|$)(.*)
         pathType: Prefix
         backend:
           service:
             name: flask-service
             port:
               number: 80
+      # - path: /database(/|$)(.*)
+      #   pathType: Prefix
+      #   backend:
+      #     service:
+      #       name: azure-vote-back
+      #       port:
+      #         number: 80
       - path: /(.*)
         pathType: Prefix
         backend:
