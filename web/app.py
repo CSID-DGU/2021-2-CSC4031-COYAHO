@@ -11,7 +11,78 @@ from flask_wtf.csrf import CSRFProtect
 from forms import RegisterForm, LoginForm, UploadForm
 from werkzeug.utils import secure_filename
 import threading
+
 app = Flask(__name__)
+
+
+aws_prometheus_url = "a790d6655f63c401c86fb7f46231d257-1084231655.us-west-2.elb.amazonaws.com"
+azure_prometheus_url = "20.196.224.1471"
+gcp_prometheus_url = "34.121.224.0"
+
+
+def get_url(prometheus_url):
+    return prometheus_url
+
+
+aws = True
+azure = True
+gcp = True
+
+
+def azure_connect_check():
+    global azure
+    if azure:
+        try:
+            res = requests.get("http://"+get_url(azure_prometheus_url))
+            print("azure "+str(res.status_code))
+        except requests.Timeout:
+            print("azure timeout")
+            pass
+        except requests.ConnectionError:
+            print("azure connectionerror")
+            recovery()
+            azure = False
+            pass
+        finally:
+            threading.Timer(20, azure_connect_check).start()
+
+
+def aws_connect_check():
+    global aws
+    if aws:
+        try:
+            res = requests.get("http://"+get_url(aws_prometheus_url))
+            print("aws "+str(res.status_code))
+
+        except requests.Timeout:
+            print("aws timeout")
+            pass
+        except requests.ConnectionError:
+            print("aws connectionerror")
+            # recovery()
+            aws = False
+            pass
+        finally:
+            threading.Timer(20, aws_connect_check).start()
+
+
+def gcp_connect_check():
+    global gcp
+    if gcp:
+        try:
+            res = requests.get("http://"+get_url(gcp_prometheus_url))
+            print("gcp "+str(res.status_code))
+
+        except requests.Timeout:
+            print("gcp timeout")
+            pass
+        except requests.ConnectionError:
+            print("gcp connectionerror")
+            # recovery()
+            gcp = False
+            pass
+        finally:
+            threading.Timer(20, gcp_connect_check).start()
 
 
 @app.route('/')
@@ -24,7 +95,7 @@ def index():
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
-        user = Fcuser.query.filter_by(userid = form.userid.data).first()
+        user = Fcuser.query.filter_by(userid=form.userid.data).first()
 
         if user:
             flash('이미 존재하는 아이디입니다.')
@@ -36,9 +107,9 @@ def register():
             fcuser.password = form.data.get('password')
             fcuser.grafana_ip = form.data.get('grafana_ip')
 
-            print(fcuser.userid,fcuser.password)  
-            db.session.add(fcuser)  
-            db.session.commit() 
+            print(fcuser.userid, fcuser.password)
+            db.session.add(fcuser)
+            db.session.commit()
             return render_template('index.html')
     return render_template('register.html', form=form)
 
@@ -50,7 +121,7 @@ def login():
         user = Fcuser.query.filter_by(userid=form.userid.data).first()
 
         if user is not None and user.password == form.data.get('password'):
-            session['userid'] = form.data.get('userid') 
+            session['userid'] = form.data.get('userid')
             return redirect('/')
         else:
             flash('아이디 또는 비밀번호가 일치하지 않습니다.')
@@ -106,7 +177,7 @@ def uploader_file():
 # 파일 보내기
 
 
-@app.route('/recovery')
+# @app.route('/recovery')
 def recovery():
     # 쿼리스트링으로 ip주소 받음
     ip_address = request.args.get('ip_address')
@@ -122,29 +193,8 @@ def recovery():
             kind = dep[i]['kind'].lower()
             send_request(target_URL=ip_address,
                          kind=kind, yaml_data=(dep[i]))
-
+    print('okay')
     return 'file sent successfully'
-
-
-url = "http://20.196.224.147"
-
-
-@app.route('/check')
-def connect_check():
-
-    try:
-        res = requests.get(url)
-        print(str(res.status_code))
-
-    except requests.Timeout:
-        print("timeout")
-        pass
-    except requests.ConnectionError:
-        print("connectionerror")
-        pass
-    finally:
-        threading.Timer(20, connect_check).start()
-    return "OK"
 
 
 if __name__ == "__main__":
@@ -161,6 +211,11 @@ if __name__ == "__main__":
     db.init_app(app)
     db.app = app
     db.create_all()
+
+    azure_connect_check()
+    # aws_connect_check()
+    # gcp_connect_check()
+
 
 # 이 부분 추후 도커 패키징 시 kubernetes config에 따라 수정 필요
     app.run(host='127.0.0.1', port=5000, debug=True)
