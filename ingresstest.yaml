@@ -32,7 +32,7 @@ spec:
                 name: azure-vote-back
                 port:
                   number: 80
-          - path: /(.*)
+          - path: /voteapp(/|$)(.*)
             pathType: Prefix
             backend:
               service:

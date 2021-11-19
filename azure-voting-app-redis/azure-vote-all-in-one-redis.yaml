@@ -33,7 +33,6 @@ spec:
     - port: 6379
   selector:
     app: azure-vote-back
-  type: LoadBalancer
 ---
 apiVersion: apps/v1
 kind: Deployment
