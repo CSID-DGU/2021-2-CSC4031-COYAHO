@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: new
+  name: coyaho
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -53,7 +53,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: default
-    namespace: new
+    namespace: coyaho
 roleRef:
   kind: ClusterRole
   name: pods-list
