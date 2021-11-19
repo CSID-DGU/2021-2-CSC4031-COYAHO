@@ -36,7 +36,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: azure-vote-front
+            name: azure-vote-back
             port:
               number: 80
 ---
