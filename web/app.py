@@ -15,10 +15,9 @@ import threading
 
 app = Flask(__name__)
 
-
-aws_prometheus_url = "a790d6655f63c401c86fb7f46231d257-1084231655.us-west-2.elb.amazonaws.com"
-azure_prometheus_url = "20.196.224.1471"
-gcp_prometheus_url = "34.121.224.0"
+prometheus = {'azure': '20.196.224.1471', 'gcp': '34.121.224.0',
+              'aws': 'a790d6655f63c401c86fb7f46231d257-1084231655.us-west-2.elb.amazonaws.com'}
+flask_api = {'azure': '', 'gcp': '', 'aws': ''}
 
 
 def get_url(prometheus_url):
@@ -34,14 +33,14 @@ def azure_connect_check():
     global azure
     if azure:
         try:
-            res = requests.get("http://"+get_url(azure_prometheus_url))
+            res = requests.get("http://"+get_url(prometheus['azure']))
             print("azure "+str(res.status_code))
         except requests.Timeout:
             print("azure timeout")
             pass
         except requests.ConnectionError:
             print("azure connectionerror")
-            recovery()
+            recovery(prometheus['azure'])
             azure = False
             pass
         finally:
@@ -52,7 +51,7 @@ def aws_connect_check():
     global aws
     if aws:
         try:
-            res = requests.get("http://"+get_url(aws_prometheus_url))
+            res = requests.get("http://"+get_url(prometheus['aws']))
             print("aws "+str(res.status_code))
 
         except requests.Timeout:
@@ -60,7 +59,7 @@ def aws_connect_check():
             pass
         except requests.ConnectionError:
             print("aws connectionerror")
-            # recovery()
+            recovery(prometheus['aws'])
             aws = False
             pass
         finally:
@@ -71,7 +70,7 @@ def gcp_connect_check():
     global gcp
     if gcp:
         try:
-            res = requests.get("http://"+get_url(gcp_prometheus_url))
+            res = requests.get("http://"+get_url(prometheus['gcp']))
             print("gcp "+str(res.status_code))
 
         except requests.Timeout:
@@ -79,7 +78,7 @@ def gcp_connect_check():
             pass
         except requests.ConnectionError:
             print("gcp connectionerror")
-            # recovery()
+            recovery(prometheus['gcp'])
             gcp = False
             pass
         finally:
@@ -179,11 +178,14 @@ def uploader_file():
 
 
 # @app.route('/recovery')
-def recovery():
+def recovery(ip_address, **kwargs):
     # 쿼리스트링으로 ip주소 받음
-    target_namespace = request.args.get('namespace')  # 이 부분 추가작성 필요
-    ip_address = request.args.get('ip_address')
-    # 해당 아이피로 전송
+    if 'target_namespace' not in kwargs.keys():
+        target_namespace = 'default'
+    else:
+        target_namespace = kwargs['namespace']
+
+    # 전송할 yaml파일 경로
     yaml_file_dir = './azure-vote-all-in-one-redis.yaml'
 
     sample_headers = {
