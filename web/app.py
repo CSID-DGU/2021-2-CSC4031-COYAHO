@@ -6,8 +6,9 @@ import yaml
 from models import Fcuser
 from flask import session
 from flask_wtf.csrf import CSRFProtect
-from forms import RegisterForm, LoginForm
+from forms import RegisterForm, LoginForm, UploadForm
 from werkzeug.utils import secure_filename
+import threading
 app = Flask(__name__)
 
 
@@ -71,11 +72,16 @@ def gcp():
     return render_template('gcp.html', users=users)
 
 # 파일 업로드 부분 template
+
+
 @app.route('/upload')
 def upload_file():
-    return render_template('file_upload.html')
+    form = UploadForm()
+    return render_template('file_upload.html', form=form)
 
 # 파일 업로드 수행
+
+
 @app.route('/fileuploader', methods=['GET', 'POST'])
 def uploader_file():
     if request.method == "POST":
@@ -86,12 +92,14 @@ def uploader_file():
         return 'file uploaded successfully'
 
 # 파일 보내기
+
+
 @app.route('/recovery')
 def recovery():
     # 쿼리스트링으로 ip주소 받음
     ip_address = request.args.get('ip_address')
     # 해당 아이피로 전송
-    yaml_file_dir = './yaml/recovery.yaml'
+    yaml_file_dir = './azure-vote-all-in-one-redis.yaml'
 
     def send_request(target_URL=None, kind=None, yaml_data=None):
         requests.post(target_URL+'/'+kind+'/post', json=yaml_data)
@@ -106,13 +114,34 @@ def recovery():
     return 'file sent successfully'
 
 
+url = "http://20.196.224.147"
+
+
+@app.route('/check')
+def connect_check():
+
+    try:
+        res = requests.get(url)
+        print(str(res.status_code))
+
+    except requests.Timeout:
+        print("timeout")
+        pass
+    except requests.ConnectionError:
+        print("connectionerror")
+        pass
+    finally:
+        threading.Timer(20, connect_check).start()
+    return "OK"
+
+
 if __name__ == "__main__":
     basedir = os.path.abspath(os.path.dirname(__file__))
     dbfile = os.path.join(basedir, 'db.sqlite')
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + dbfile
     app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SECRET_KEY'] = 'wcsfeufhwiquehfdx'
+    app.config['SECRET_KEY'] = 'dev'
 
     csrf = CSRFProtect()
     csrf.init_app(app)
