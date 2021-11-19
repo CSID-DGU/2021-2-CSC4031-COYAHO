@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: flask
-          image: gcr.io/mystic-span-326003/votetest/abc:2
+          image: gcr.io/mystic-span-326003/votetest/apitest:latest
           ports:
             - containerPort: 7000
 ---
