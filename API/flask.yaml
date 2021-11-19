@@ -8,6 +8,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: flask-deployment
+  namespace: coyaho
 spec:
   selector:
     matchLabels:
@@ -28,8 +29,9 @@ apiVersion: v1
 kind: Service
 metadata:
   name: flask-service
+  namespace: coyaho
 spec:
-  #type: LoadBalancer
+  type: LoadBalancer
   ports:
     - port: 80
       targetPort: 80
