@@ -1,14 +1,12 @@
 from collections import UserDict
-from flask import Flask, render_template, request, redirect, flash
-import flask
+from flask import Flask, render_template, request, redirect, flash, session
 from models import db
 import os
 import requests
 import yaml
 from models import Fcuser
-from flask import session
 from flask_wtf.csrf import CSRFProtect
-from forms import RegisterForm, LoginForm
+from forms import RegisterForm, LoginForm, GrafanaForm
 from werkzeug.utils import secure_filename
 app = Flask(__name__)
 
@@ -31,16 +29,13 @@ def register():
         else:
             fcuser = Fcuser()
             fcuser.userid = form.data.get('userid')
-
             fcuser.password = form.data.get('password')
             fcuser.grafana_ip = form.data.get('grafana_ip')
-
-            print(fcuser.userid,fcuser.password)  
+            # fcuser.grafana_ip = open('grafana_ip.txt', 'r').readlines()
             db.session.add(fcuser)  
             db.session.commit() 
             return render_template('index.html')
     return render_template('register.html', form=form)
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -81,6 +76,33 @@ def gcp():
     userid = session.get('userid', None)
     users = Fcuser.query.filter_by(userid=userid).all()
     return render_template('gcp.html', users=users)
+
+@app.route('/grafana', methods=['GET', 'POST'])
+def grafana():
+    form = GrafanaForm()
+    if form.validate_on_submit():
+        with open('grafana-values.yaml', 'r', encoding='utf-8') as f:
+	        ym = yaml.load(f, Loader=yaml.FullLoader)
+
+        for elem in ym:
+	        if elem == 'datasources':
+		        newdict = ym[elem]
+		        newdict = newdict['datasources.yaml']
+		        newdict = newdict['datasources']
+		        for elem in newdict:
+			        if elem['name'] == 'aws':
+				        elem['url'] = form.data.get('aws_ip')
+			        elif elem['name'] == 'azure':
+			    	    elem['url'] = form.data.get('azure_ip')
+			        elif elem['name'] == 'gcp':
+				        elem['url'] = form.data.get('gcp_ip')
+        with open('grafana-values.yaml', 'w', encoding='utf-8') as f:
+	        yaml.dump(ym, f)
+        # os.system('helm install grafana stable/grafana -f grafana-values.yaml')
+        # os.system("kubectl get svc grafana -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].ip}' > grafana_ip.txt")
+        return redirect('/register')
+
+    return render_template('grafana_setting.html', form=form)
 
 # 파일 업로드 부분 template
 @app.route('/upload')

@@ -2,7 +2,7 @@
 <html>
 
 <head>
-	<title>Create Account</title>
+	<title>Grafana Setting</title>
 	<!-- <link href="style.css" type="text/css" rel="stylesheet"> -->
 	<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 	<meta charset="UTF-8">
@@ -24,7 +24,7 @@
 
 <body style="background-color: lightgray; color: black;">
 	<div class="box-home" style="margin-top: 50px;">
-		<div class="title-2" style="text-align: center;">Step 2 - Create Account</div>
+		<div class="title-2" style="text-align: center;">Step 1 - Grafana Setting</div>
 			<div class="box-home-inner" style="opacity: 1; text-align: left; background-color: white;">
 				<div class="container">
 					<div class="row mt-5">
@@ -33,20 +33,13 @@
 								{{form.csrf_token}}
 								{% include "form_errors.html" %}
 								<div class="form-group">
-									{{form.userid.label("User ID")}}
-									{{form.userid(class="form-control", placeholder="User ID")}}
+									{{form.aws_ip(class="form-control", placeholder="AWS Prometheus Server IP")}}
 								</div>
 								<div class="form-group">
-									{{form.password.label("Password")}}
-									{{form.password(class="form-control", placeholder="Password")}}
+									{{form.azure_ip(class="form-control", placeholder="Azure Prometheus Server IP")}}
 								</div>
 								<div class="form-group">
-									{{form.re_password.label("Retype Password")}}
-									{{form.re_password(class="form-control", placeholder="Retype Password")}}
-								</div>
-								<div class="form-group">
-									{{form.grafana_ip.label("Grafana IP")}}
-									{{form.grafana_ip(class="form-control", placeholder="Grafana IP")}}
+									{{form.gcp_ip(class="form-control", placeholder="GCP Prometheus Server IP")}}
 								</div>
 								<button type="submit" class="btn btn-primary" style="background-color: grey; border-style: none; float: right; ">Sign Up</button>
 							</form>
