@@ -235,4 +235,4 @@ if __name__ == "__main__":
 
 
 # 이 부분 추후 도커 패키징 시 kubernetes config에 따라 수정 필요
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=80, debug=True)
