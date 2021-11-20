@@ -15,15 +15,20 @@ import threading
 
 app = Flask(__name__)
 
-prometheus = {'azure': '20.196.224.1471', 'gcp': '34.121.224.0',
+prometheus = {'azure': '20.196.224.147', 'gcp': '34.121.224.0',
               'aws': 'a790d6655f63c401c86fb7f46231d257-1084231655.us-west-2.elb.amazonaws.com'}
-flask_api = {'azure': '', 'gcp': '', 'aws': ''}
+flask_api = {'azure': '20.200.207.199', 'gcp': '34.134.51.2',
+             'aws': 'ae50df8052d55419ab5df1bd7c72e9ef-1421424937.us-west-2.elb.amazonaws.com'}
+# 'azure': '20.196.224.147'
+# 'azure': '20.200.207.199'
 
 
 def get_url(prometheus_url):
     return prometheus_url
 
 
+# 각 클라우드 connection check하는 코드
+# connect 될 때 True, 안되면 False
 aws = True
 azure = True
 gcp = True
@@ -40,7 +45,7 @@ def azure_connect_check():
             pass
         except requests.ConnectionError:
             print("azure connectionerror")
-            recovery(prometheus['azure'])
+            recovery("http://"+flask_api['azure'])
             azure = False
             pass
         finally:
@@ -59,7 +64,7 @@ def aws_connect_check():
             pass
         except requests.ConnectionError:
             print("aws connectionerror")
-            recovery(prometheus['aws'])
+            recovery("http://"+flask_api['aws'])
             aws = False
             pass
         finally:
@@ -78,7 +83,7 @@ def gcp_connect_check():
             pass
         except requests.ConnectionError:
             print("gcp connectionerror")
-            recovery(prometheus['gcp'])
+            recovery("http://"+flask_api['gcp'])
             gcp = False
             pass
         finally:
@@ -224,8 +229,8 @@ if __name__ == "__main__":
     db.app = app
     db.create_all()
 
-    azure_connect_check()
-    # aws_connect_check()
+    # azure_connect_check()
+    aws_connect_check()
     # gcp_connect_check()
 
 

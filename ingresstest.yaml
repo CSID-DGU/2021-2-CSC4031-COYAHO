@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: hello-world-ingress
+  name: coyaho-ingress
   annotations:
     kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
@@ -9,47 +9,33 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /$1
 spec:
   rules:
-  - http:
-      paths:
-      - path: /hello-world-one(/|$)(.*)
-        pathType: Prefix
-        backend:
-          service:
-            name: prometheus-server
-            port:
-              number: 80
-      - path: /hello-world-two(/|$)(.*)
-        pathType: Prefix
-        backend:
-          service:
-            name: flask-service
-            port:
-              number: 80
-      - path: /(.*)
-        pathType: Prefix
-        backend:
-          service:
-            name: azure-vote-front
-            port:
-              number: 80
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: hello-world-ingress-static
-  annotations:
-    kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
-    nginx.ingress.kubernetes.io/rewrite-target: /static/$2
-spec:
-  rules:
-  - http:
-      paths:
-      - path:
-        pathType: Prefix
-        backend:
-          service:
-            name: azure-vote-front
-            port: 
-              number: 80
-        path: /static(/|$)(.*)
+    - http:
+        paths:
+          - path: /prometheus(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: prometheus-server
+                port:
+                  number: 80
+          - path: /flask_api(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: flask-service
+                port:
+                  number: 80
+          - path: /database(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: azure-vote-back
+                port:
+                  number: 80
+          - path: /voteapp(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: azure-vote-front
+                port:
+                  number: 80
