@@ -10,6 +10,7 @@ from flask_wtf.csrf import CSRFProtect
 from forms import RegisterForm, LoginForm, UploadForm, GrafanaForm
 from werkzeug.utils import secure_filename
 import threading
+
 app = Flask(__name__)
 
 prometheus = {'azure': '20.196.224.147', 'gcp': '34.121.224.0',
@@ -44,7 +45,7 @@ def azure_connect_check():
             pass
         finally:
             threading.Timer(20, azure_connect_check).start()
-
+            
 def aws_connect_check():
     global aws
     if aws:
@@ -138,7 +139,7 @@ def register():
 
     form = RegisterForm()
     if form.validate_on_submit():
-        user = Fcuser.query.filter_by(userid = form.userid.data).first()
+        user = Fcuser.query.filter_by(userid=form.userid.data).first()
 
         if user:
             flash('이미 존재하는 아이디입니다.')
@@ -160,7 +161,7 @@ def login():
         user = Fcuser.query.filter_by(userid=form.userid.data).first()
 
         if user is not None and user.password == form.data.get('password'):
-            session['userid'] = form.data.get('userid') 
+            session['userid'] = form.data.get('userid')
             return redirect('/')
         else:
             flash('아이디 또는 비밀번호가 일치하지 않습니다.')
@@ -194,12 +195,16 @@ def gcp():
     return render_template('gcp.html', users=users)
 
 # 파일 업로드 부분 template
+
+
 @app.route('/upload')
 def upload_file():
     form = UploadForm()
     return render_template('file_upload.html', form=form)
 
 # 파일 업로드 수행
+
+
 @app.route('/fileuploader', methods=['GET', 'POST'])
 def uploader_file():
     if request.method == "POST":
@@ -257,8 +262,9 @@ if __name__ == "__main__":
     db.app = app
     db.create_all()
 
-# azure_connect_check()
+    # azure_connect_check()
     aws_connect_check()
     # gcp_connect_check()
+
 # 이 부분 추후 도커 패키징 시 kubernetes config에 따라 수정 필요
     app.run(host='0.0.0.0', port=80, debug=True)
