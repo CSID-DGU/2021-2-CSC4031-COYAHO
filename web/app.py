@@ -1,15 +1,13 @@
 from collections import UserDict
-from flask import Flask, render_template, request, redirect, flash
-import flask
+from flask import Flask, render_template, request, redirect, flash, session
 from models import db
 import os
 import requests
 import yaml
 import time
 from models import Fcuser
-from flask import session
 from flask_wtf.csrf import CSRFProtect
-from forms import RegisterForm, LoginForm, UploadForm
+from forms import RegisterForm, LoginForm, UploadForm, GrafanaForm
 from werkzeug.utils import secure_filename
 import threading
 
@@ -22,17 +20,14 @@ flask_api = {'azure': '20.200.207.199', 'gcp': '34.134.51.2',
 # 'azure': '20.196.224.147'
 # 'azure': '20.200.207.199'
 
-
 def get_url(prometheus_url):
     return prometheus_url
-
 
 # 각 클라우드 connection check하는 코드
 # connect 될 때 True, 안되면 False
 aws = True
 azure = True
 gcp = True
-
 
 def azure_connect_check():
     global azure
@@ -50,8 +45,7 @@ def azure_connect_check():
             pass
         finally:
             threading.Timer(20, azure_connect_check).start()
-
-
+            
 def aws_connect_check():
     global aws
     if aws:
@@ -89,15 +83,60 @@ def gcp_connect_check():
         finally:
             threading.Timer(20, gcp_connect_check).start()
 
-
 @app.route('/')
 def index():
     userid = session.get('userid', None)
     return render_template("index.html", userid=userid)
 
+# 3개 클라우드의 그라파나 ip를 받아서 grafana-values.yaml 파일을 수정
+@app.route('/grafana', methods=['GET', 'POST'])
+def grafana():
+    form = GrafanaForm()
+    if form.validate_on_submit():
+        with open('grafana-values.yaml', 'r', encoding='utf-8') as f:
+	        ym = yaml.load(f, Loader=yaml.FullLoader)
+
+        for elem in ym:
+	        if elem == 'datasources':
+		        newdict = ym[elem]
+		        newdict = newdict['datasources.yaml']
+		        newdict = newdict['datasources']
+		        for elem in newdict:
+			        if elem['name'] == 'aws':
+				        elem['url'] = form.data.get('aws_ip')
+			        elif elem['name'] == 'azure':
+			    	    elem['url'] = form.data.get('azure_ip')
+			        elif elem['name'] == 'gcp':
+				        elem['url'] = form.data.get('gcp_ip')
+        with open('grafana-values.yaml', 'w', encoding='utf-8') as f:
+	        yaml.dump(ym, f)
+        return redirect('/waiting')
+
+    return render_template('grafana_setting.html', form=form)
+
+@app.route('/waiting', methods=['GET', 'POST'])
+def waiting():
+    # ns 생성
+    os.system('kubectl create namespace monitoring')
+    # 사용자 클라우드에 helm으로 grafana 설치
+    os.system('helm install grafana stable/grafana -f grafana-values.yaml --namespace monitoring')
+    # 그라파나 ip를 받아와서 grafana_ip.txt에 저장
+    os.system("kubectl get svc grafana -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].ip}' > grafana_ip.txt")
+    
+    # 설치가 완료되었는지 check
+    while True:
+        # grafana_ip.txt가 빈 파일이라면 삭제하고 다시 명령어 실행
+        # 그라파나가 아직 설치되지않아 에러가 발생하면 grafana_ip.txt가 빈 파일로 저장됨
+        if os.stat("grafana_ip.txt").st_size == 0:
+                os.system('rm -rf grafana_ip.txt')
+                os.system("kubectl get svc grafana -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].ip}' > grafana_ip.txt")
+        else:
+            break 
+    return redirect('/register')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+
     form = RegisterForm()
     if form.validate_on_submit():
         user = Fcuser.query.filter_by(userid=form.userid.data).first()
@@ -108,16 +147,12 @@ def register():
         else:
             fcuser = Fcuser()
             fcuser.userid = form.data.get('userid')
-
             fcuser.password = form.data.get('password')
-            fcuser.grafana_ip = form.data.get('grafana_ip')
-
-            print(fcuser.userid, fcuser.password)
-            db.session.add(fcuser)
-            db.session.commit()
+            fcuser.grafana_ip = open('grafana_ip.txt', 'r').read()
+            db.session.add(fcuser)  
+            db.session.commit() 
             return render_template('index.html')
     return render_template('register.html', form=form)
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -180,8 +215,6 @@ def uploader_file():
         return 'file uploaded successfully'
 
 # 파일 보내기
-
-
 # @app.route('/recovery')
 def recovery(ip_address, **kwargs):
     # 쿼리스트링으로 ip주소 받음
@@ -232,7 +265,6 @@ if __name__ == "__main__":
     # azure_connect_check()
     aws_connect_check()
     # gcp_connect_check()
-
 
 # 이 부분 추후 도커 패키징 시 kubernetes config에 따라 수정 필요
     app.run(host='0.0.0.0', port=80, debug=True)
