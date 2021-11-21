@@ -5,8 +5,7 @@ from wtforms.validators import DataRequired, EqualTo
 
 class RegisterForm(FlaskForm):
     userid = StringField('userid', validators=[DataRequired()])
-    grafana_ip = StringField('grafana_ip', validators=[DataRequired()])
-    password = PasswordField('password', validators=[DataRequired(), EqualTo('re_password')]) #equalTo("필드네임")
+    password = PasswordField('password', validators=[DataRequired(), EqualTo('re_password')]) 
     re_password = PasswordField('re_password', validators=[DataRequired()])
 
 class LoginForm(FlaskForm):
