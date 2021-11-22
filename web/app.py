@@ -118,6 +118,10 @@ def grafana():
 def waiting():
     # ns 생성
     os.system('kubectl create namespace monitoring')
+    # helm 설치 
+    os.system('curl https://raw.githubusercontent.com/helm/helm/master/scripts/get > get_helm.sh')
+    os.system('chmod 700 get_helm.sh')
+    os.system('./get_helm.sh')
     # 사용자 클라우드에 helm으로 grafana 설치
     os.system('helm install grafana stable/grafana -f grafana-values.yaml --namespace monitoring')
     # 그라파나 ip를 받아와서 grafana_ip.txt에 저장
