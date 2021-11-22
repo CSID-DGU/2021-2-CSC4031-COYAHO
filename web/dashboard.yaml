@@ -21,7 +21,7 @@ spec:
       containers:
         - name: coyadash
           #image: gcr.io/mystic-span-326003/votetest/coda:1
-          image: coyahov2.azurecr.io/coyadash3:latest
+          image: coyahov2.azurecr.io/coyadash:latest
           ports:
             - containerPort: 7001
 ---
