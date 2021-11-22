@@ -1,6 +1,4 @@
-from collections import UserDict
 from flask import Flask, render_template, request, redirect, flash
-import flask
 from models import db
 import os
 import requests
@@ -10,7 +8,6 @@ from models import Fcuser
 from flask import session
 from flask_wtf.csrf import CSRFProtect
 from forms import RegisterForm, LoginForm, UploadForm
-from werkzeug.utils import secure_filename
 import threading
 
 app = Flask(__name__)
