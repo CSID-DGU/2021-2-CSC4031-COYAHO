@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: coyaho
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coyadash-deploy
+  namespace: coyaho
+spec:
+  selector:
+    matchLabels:
+      app: coyadash
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: coyadash
+    spec:
+      containers:
+        - name: coyadash
+          image: gcr.io/mystic-span-326003/votetest/coda:1
+          ports:
+            - containerPort: 7001
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: coyadash-svc
+  namespace: coyaho
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 80
+      name: http
+  selector:
+    app: coyadash
