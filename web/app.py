@@ -1,4 +1,3 @@
-from collections import UserDict
 from flask import Flask, render_template, request, redirect, flash, session
 from models import db
 import os
@@ -8,49 +7,91 @@ import time
 from models import Fcuser
 from flask_wtf.csrf import CSRFProtect
 from forms import RegisterForm, LoginForm, UploadForm, GrafanaForm
-from werkzeug.utils import secure_filename
 import threading
 
 app = Flask(__name__)
 
-prometheus = {'azure': '20.196.224.147', 'gcp': '34.121.224.0',
-              'aws': 'a790d6655f63c401c86fb7f46231d257-1084231655.us-west-2.elb.amazonaws.com'}
-flask_api = {'azure': '20.200.207.199', 'gcp': '34.134.51.2',
-             'aws': 'ae50df8052d55419ab5df1bd7c72e9ef-1421424937.us-west-2.elb.amazonaws.com'}
-# 'azure': '20.196.224.147'
-# 'azure': '20.200.207.199'
 
 def get_url(prometheus_url):
     return prometheus_url
 
-# 각 클라우드 connection check하는 코드
-# connect 될 때 True, 안되면 False
-aws = True
-azure = True
-gcp = True
+
+# prometheus_ip(prometheus ip), api_ip(flask api ip), status 서버 상태(정상 = True)
+cloud_info = {'azure': {'prometheus_ip': '20.196.224.147', 'api_ip': '20.200.207.199', 'status': True},
+              'aws': {'prometheus_ip': 'a790d6655f63c401c86fb7f46231d257-1084231655.us-west-2.elb.amazonaws.com', 'api_ip': 'ae50df8052d55419ab5df1bd7c72e9ef-1421424937.us-west-2.elb.amazonaws.com', 'status': True},
+              'gcp': {'prometheus_ip': '34.121.224.0', 'api_ip': '34.134.51.2', 'status': True}}
+
+
+def recovery_send():
+    global cloud_info
+    problem_flag = False
+
+    # 검사
+    for idx, csp in enumerate(cloud_info.keys()):
+        if csp == 'azure':
+            azure_connect_check()
+        elif csp == 'aws':
+            aws_connect_check()
+        elif csp == 'gcp':
+            gcp_connect_check()
+
+        csp_stat = cloud_info[csp]
+        # 조건문으로 클라우드에서 응답없음 확인
+        if csp_stat['status'] is False:
+            print(f'{csp} 클라우드에서 응답이 없습니다.')
+            try:
+                # 문제가 발생한 클라우드의 인덱스+1을 csp_to_recover로 지정
+                csp_to_recover = list(cloud_info.keys())[idx+1]
+            except:
+                # 마지막 순번의 클라우드에 문제가 발생할 경우 첫 번째 클라우드로 지정
+                csp_to_recover = list(cloud_info.keys())[0]
+            # 문제가 발생한 클라우드를 cloud_info에서 삭제
+            cloud_info.pop(csp)
+            print(f'{csp} 클라우드가 모니터링 대상에서 제외되었습니다.')
+            print(list(cloud_info.keys()))
+            # problem_flag True로 변경
+            problem_flag = True
+
+            break
+        else:
+            print(f'{csp} 클라우드가 정상 작동하고 있습니다.')
+    print(cloud_info)
+    # problem_flag가 True이면 복구기능 수행
+    if problem_flag:
+        # csp_to_recover에 복구명령 전달
+        print(cloud_info)
+        print(f'{csp_to_recover} 클라우드에서 복구명령을 수행합니다')
+        # 복구 수행
+        print('복구가 완료되었습니다.')
+    threading.Timer(60, recovery_send).start()
+
 
 def azure_connect_check():
-    global azure
+    global azure, cloud_info
     if azure:
         try:
-            res = requests.get("http://"+get_url(prometheus['azure']))
+            res = requests.get(
+                "http://{}".format(get_url(cloud_info['azure']['prometheus_ip'])))
             print("azure "+str(res.status_code))
         except requests.Timeout:
             print("azure timeout")
             pass
         except requests.ConnectionError:
             print("azure connectionerror")
-            recovery("http://"+flask_api['azure'])
-            azure = False
+            # recovery(
+            #    "http://{}".format(get_url(cloud_info['azure']['api_ip'])))
+            cloud_info['azure']['status'] = False
             pass
-        finally:
-            threading.Timer(20, azure_connect_check).start()
-            
+        # finally:
+        #    threading.Timer(20, azure_connect_check).start()
+
+
 def aws_connect_check():
     global aws
     if aws:
         try:
-            res = requests.get("http://"+get_url(prometheus['aws']))
+            res = requests.get(
+                "http://{}".format(get_url(cloud_info['aws']['prometheus_ip'])))
             print("aws "+str(res.status_code))
 
         except requests.Timeout:
@@ -58,18 +99,19 @@ def aws_connect_check():
             pass
         except requests.ConnectionError:
             print("aws connectionerror")
-            recovery("http://"+flask_api['aws'])
-            aws = False
+            # recovery("http://{}".format(get_url(cloud_info['aws']['api_ip'])))
+            cloud_info['aws']['status'] = False
             pass
-        finally:
-            threading.Timer(20, aws_connect_check).start()
+        # finally:
+        #    threading.Timer(20, aws_connect_check).start()
 
 
 def gcp_connect_check():
     global gcp
     if gcp:
         try:
-            res = requests.get("http://"+get_url(prometheus['gcp']))
+            res = requests.get(
+                "http://{}".format(get_url(cloud_info['gcp']['prometheus_ip'])))
             print("gcp "+str(res.status_code))
 
         except requests.Timeout:
@@ -77,11 +119,12 @@ def gcp_connect_check():
             pass
         except requests.ConnectionError:
             print("gcp connectionerror")
-            recovery("http://"+flask_api['gcp'])
-            gcp = False
+            # recovery("http://{}".format(get_url(cloud_info['gcp']['api_ip'])))
+            cloud_info['gcp']['status'] = False
             pass
-        finally:
-            threading.Timer(20, gcp_connect_check).start()
+        # finally:
+        #    threading.Timer(20, gcp_connect_check).start()
+
 
 @app.route('/')
 def index():
@@ -94,25 +137,26 @@ def grafana():
     form = GrafanaForm()
     if form.validate_on_submit():
         with open('grafana-values.yaml', 'r', encoding='utf-8') as f:
-	        ym = yaml.load(f, Loader=yaml.FullLoader)
+            ym = yaml.load(f, Loader=yaml.FullLoader)
 
         for elem in ym:
-	        if elem == 'datasources':
-		        newdict = ym[elem]
-		        newdict = newdict['datasources.yaml']
-		        newdict = newdict['datasources']
-		        for elem in newdict:
-			        if elem['name'] == 'aws':
-				        elem['url'] = form.data.get('aws_ip')
-			        elif elem['name'] == 'azure':
-			    	    elem['url'] = form.data.get('azure_ip')
-			        elif elem['name'] == 'gcp':
-				        elem['url'] = form.data.get('gcp_ip')
+            if elem == 'datasources':
+                newdict = ym[elem]
+                newdict = newdict['datasources.yaml']
+                newdict = newdict['datasources']
+                for elem in newdict:
+                    if elem['name'] == 'aws':
+                        elem['url'] = form.data.get('aws_ip')
+                    elif elem['name'] == 'azure':
+                        elem['url'] = form.data.get('azure_ip')
+                    elif elem['name'] == 'gcp':
+                        elem['url'] = form.data.get('gcp_ip')
         with open('grafana-values.yaml', 'w', encoding='utf-8') as f:
-	        yaml.dump(ym, f)
+            yaml.dump(ym, f)
         return redirect('/waiting')
 
     return render_template('grafana_setting.html', form=form)
+
 
 @app.route('/waiting', methods=['GET', 'POST'])
 def waiting():
@@ -123,20 +167,24 @@ def waiting():
     os.system('chmod 700 get_helm.sh')
     os.system('./get_helm.sh')
     # 사용자 클라우드에 helm으로 grafana 설치
-    os.system('helm install grafana stable/grafana -f grafana-values.yaml --namespace monitoring')
+    os.system(
+        'helm install grafana stable/grafana -f grafana-values.yaml --namespace monitoring')
     # 그라파나 ip를 받아와서 grafana_ip.txt에 저장
-    os.system("kubectl get svc grafana -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].ip}' > grafana_ip.txt")
-    
+    os.system(
+        "kubectl get svc grafana -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].ip}' > grafana_ip.txt")
+
     # 설치가 완료되었는지 check
     while True:
         # grafana_ip.txt가 빈 파일이라면 삭제하고 다시 명령어 실행
         # 그라파나가 아직 설치되지않아 에러가 발생하면 grafana_ip.txt가 빈 파일로 저장됨
         if os.stat("grafana_ip.txt").st_size == 0:
-                os.system('rm -rf grafana_ip.txt')
-                os.system("kubectl get svc grafana -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].ip}' > grafana_ip.txt")
+            os.system('rm -rf grafana_ip.txt')
+            os.system(
+                "kubectl get svc grafana -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].ip}' > grafana_ip.txt")
         else:
-            break 
+            break
     return redirect('/register')
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -153,10 +201,11 @@ def register():
             fcuser.userid = form.data.get('userid')
             fcuser.password = form.data.get('password')
             fcuser.grafana_ip = open('grafana_ip.txt', 'r').read()
-            db.session.add(fcuser)  
-            db.session.commit() 
+            db.session.add(fcuser)
+            db.session.commit()
             return render_template('index.html')
     return render_template('register.html', form=form)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -213,13 +262,14 @@ def upload_file():
 def uploader_file():
     if request.method == "POST":
         f = request.files['file']
-        # 저장경로는 web/yaml폴더
-        # f.save(secure_filename('./yaml/'+f.filename))
-        f.save(secure_filename('./yaml/'+'recovery.yaml'))
+        # 저장경로는 web/yam/recovery.yaml
+        savepath = '.\\web\\yaml\\recovery.yaml'
+        f.save(savepath)
         return 'file uploaded successfully'
 
 # 파일 보내기
-# @app.route('/recovery')
+
+
 def recovery(ip_address, **kwargs):
     # 쿼리스트링으로 ip주소 받음
     if 'target_namespace' not in kwargs.keys():
@@ -228,7 +278,7 @@ def recovery(ip_address, **kwargs):
         target_namespace = kwargs['namespace']
 
     # 전송할 yaml파일 경로
-    yaml_file_dir = './azure-vote-all-in-one-redis.yaml'
+    yaml_file_dir = './yaml/recovery.yaml'
 
     sample_headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.1.2222.33 Safari/537.36",
@@ -267,8 +317,11 @@ if __name__ == "__main__":
     db.create_all()
 
     # azure_connect_check()
-    aws_connect_check()
+    # aws_connect_check()
     # gcp_connect_check()
+    recovery_send()
 
-# 이 부분 추후 도커 패키징 시 kubernetes config에 따라 수정 필요
+# 도커 패키징
     app.run(host='0.0.0.0', port=80, debug=True)
+# localhost 테스트
+    # app.run(host='127.0.0.1', port=5000, debug=True)
