@@ -17,7 +17,7 @@ spec:
               service:
                 name: prometheus-server
                 port:
-                  number: 80
+                  number: 9113
           - path: /flask_api(/|$)(.*)
             pathType: Prefix
             backend:
@@ -25,17 +25,17 @@ spec:
                 name: flask-service
                 port:
                   number: 80
-          - path: /database(/|$)(.*)
-            pathType: Prefix
-            backend:
-              service:
-                name: azure-vote-back
-                port:
-                  number: 80
-          - path: /voteapp(/|$)(.*)
-            pathType: Prefix
-            backend:
-              service:
-                name: azure-vote-front
-                port:
-                  number: 80
+          # - path: /database(/|$)(.*)
+          #   pathType: Prefix
+          #   backend:
+          #     service:
+          #       name: azure-vote-back
+          #       port:
+          #         number: 80
+          # - path: /voteapp(/|$)(.*)
+          #   pathType: Prefix
+          #   backend:
+          #     service:
+          #       name: azure-vote-front
+          #       port:
+          #         number: 80
