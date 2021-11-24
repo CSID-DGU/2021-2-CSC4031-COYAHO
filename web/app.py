@@ -16,8 +16,8 @@ def get_url(prometheus_url):
     return prometheus_url
 
 
-# prometheus_ip(prometheus ip), api_ip(flask api ip), status 서버 상태(정상 = True)
-cloud_info = {'azure': {'prometheus_ip': '20.196.224.147', 'api_ip': '20.200.207.199', 'status': True},
+# prometheus_ip(prometheus ip), api_ip(flask api ip), status 서버 상태(정상 = True, 비정상 = False)
+cloud_info = {'azure': {'prometheus_ip': '20.196.226.18', 'api_ip': '20.196.225.177', 'status': True},
               'aws': {'prometheus_ip': 'a790d6655f63c401c86fb7f46231d257-1084231655.us-west-2.elb.amazonaws.com', 'api_ip': 'ae50df8052d55419ab5df1bd7c72e9ef-1421424937.us-west-2.elb.amazonaws.com', 'status': True},
               'gcp': {'prometheus_ip': '34.121.224.0', 'api_ip': '34.134.51.2', 'status': True}}
 
@@ -51,7 +51,6 @@ def recovery_send():
             print(list(cloud_info.keys()))
             # problem_flag True로 변경
             problem_flag = True
-
             break
         else:
             print(f'{csp} 클라우드가 정상 작동하고 있습니다.')
@@ -62,6 +61,7 @@ def recovery_send():
         print(cloud_info)
         print(f'{csp_to_recover} 클라우드에서 복구명령을 수행합니다')
         # 복구 수행
+        recovery(cloud_info[csp_to_recover]['api_ip'])
         print('복구가 완료되었습니다.')
     threading.Timer(60, recovery_send).start()
 
@@ -72,7 +72,7 @@ def azure_connect_check():
         try:
             res = requests.get(
                 "http://{}".format(get_url(cloud_info['azure']['prometheus_ip'])))
-            print("azure "+str(res.status_code))
+            print("azure response status code :"+str(res.status_code))
         except requests.Timeout:
             print("azure timeout")
             pass
@@ -92,7 +92,7 @@ def aws_connect_check():
         try:
             res = requests.get(
                 "http://{}".format(get_url(cloud_info['aws']['prometheus_ip'])))
-            print("aws "+str(res.status_code))
+            print("aws response status code :"+str(res.status_code))
 
         except requests.Timeout:
             print("aws timeout")
@@ -112,7 +112,7 @@ def gcp_connect_check():
         try:
             res = requests.get(
                 "http://{}".format(get_url(cloud_info['gcp']['prometheus_ip'])))
-            print("gcp "+str(res.status_code))
+            print("gcp response status code :"+str(res.status_code))
 
         except requests.Timeout:
             print("gcp timeout")
@@ -135,6 +135,16 @@ def index():
 @app.route('/grafana', methods=['GET', 'POST'])
 def grafana():
     form = GrafanaForm()
+    global cloud_info
+
+    if form.validate_on_submit():
+
+        cloud_info['aws']['prometheus_ip'] = form.data.get('aws_ip')
+        cloud_info['azure']['prometheus_ip'] = form.data.get('azure_ip')
+        cloud_info['gcp']['prometheus_ip'] = form.data.get('gcp_ip')
+        return redirect('/register')
+
+    '''
     if form.validate_on_submit():
         with open('grafana-values.yaml', 'r', encoding='utf-8') as f:
             ym = yaml.load(f, Loader=yaml.FullLoader)
@@ -154,10 +164,12 @@ def grafana():
         with open('grafana-values.yaml', 'w', encoding='utf-8') as f:
             yaml.dump(ym, f)
         return redirect('/waiting')
+    '''
 
     return render_template('grafana_setting.html', form=form)
 
 
+'''
 @app.route('/waiting', methods=['GET', 'POST'])
 def waiting():
     # ns 생성
@@ -184,6 +196,7 @@ def waiting():
         else:
             break
     return redirect('/register')
+'''
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -200,7 +213,7 @@ def register():
             fcuser = Fcuser()
             fcuser.userid = form.data.get('userid')
             fcuser.password = form.data.get('password')
-            fcuser.grafana_ip = open('grafana_ip.txt', 'r').read()
+            #fcuser.grafana_ip = open('grafana_ip.txt', 'r').read()
             db.session.add(fcuser)
             db.session.commit()
             return render_template('index.html')
@@ -278,7 +291,7 @@ def recovery(ip_address, **kwargs):
         target_namespace = kwargs['namespace']
 
     # 전송할 yaml파일 경로
-    yaml_file_dir = './yaml/recovery.yaml'
+    yaml_file_dir = '.\\yaml\\recovery.yaml'
 
     sample_headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.1.2222.33 Safari/537.36",
@@ -287,14 +300,14 @@ def recovery(ip_address, **kwargs):
     }
 
     def send_request(target_URL=None, kind=None, yaml_data=None):
-        requests.post(target_URL+'/'+kind +
+        requests.post("http://"+target_URL+'/'+kind +
                       f'/post?namespace={target_namespace}', json=yaml_data, headers=sample_headers)
 
     with open(os.path.join(os.path.dirname(__file__), yaml_file_dir)) as f:
         dep = list(yaml.safe_load_all(f))
         for i in range(len(dep)):
             time.sleep(1)
-            kind = dep[i]['kind'].lower()
+            print(dep[i])
             send_request(target_URL=ip_address,
                          kind=kind, yaml_data=(dep[i]))
     print('okay')
@@ -316,12 +329,9 @@ if __name__ == "__main__":
     db.app = app
     db.create_all()
 
-    # azure_connect_check()
-    # aws_connect_check()
-    # gcp_connect_check()
     recovery_send()
 
 # 도커 패키징
-    app.run(host='0.0.0.0', port=80, debug=True)
+    # app.run(host='0.0.0.0', port=80, debug=True)
 # localhost 테스트
-    # app.run(host='127.0.0.1', port=5000, debug=True)
+    app.run(host='127.0.0.1', port=5000, debug=True)
