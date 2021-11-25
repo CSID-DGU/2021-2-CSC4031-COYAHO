@@ -1,1 +1,1 @@
-{"gcp": {"prometheus_ip": "34.121.224.0", "api_ip": "34.134.51.2", "status": false}}
+{"cloud2": {"prometheus_ip": "", "api_ip": "34.72.9.91", "status": true}}

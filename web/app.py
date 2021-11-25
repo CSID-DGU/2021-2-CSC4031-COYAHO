@@ -7,10 +7,13 @@ from flask_wtf.csrf import CSRFProtect
 from forms import RegisterForm, LoginForm, UploadForm, GrafanaForm
 from restore import recovery_send
 from utils import save_info, load_info
-
+''''
 cloud_info = {'azure': {'prometheus_ip': '20.196.226.18', 'api_ip': '20.196.225.177', 'status': True},
               'aws': {'prometheus_ip': 'a790d6655f63c401c86fb7f46231d257-1084231655.us-west-2.elb.amazonaws.com', 'api_ip': 'ae50df8052d55419ab5df1bd7c72e9ef-1421424937.us-west-2.elb.amazonaws.com', 'status': True},
               'gcp': {'prometheus_ip': '34.121.224.0', 'api_ip': '34.134.51.2', 'status': True}}
+'''
+cloud_info = {'cloud1': {'prometheus_ip': '20.196.226.18', 'api_ip': '20.196.225.177', 'status': True},
+              'cloud2': {'prometheus_ip': '', 'api_ip': '34.72.9.91', 'status': True}}
 save_info(cloud_info)
 
 scheduler = BackgroundScheduler(daemon=True, timezone='Asia/Seoul')
