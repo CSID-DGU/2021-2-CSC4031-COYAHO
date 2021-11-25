@@ -1,17 +1,13 @@
 
 import requests
-import threading
 import os
 import time
 import yaml
-import json
-
-with open(os.path.join(os.path.dirname(__file__), 'cloud_info.json'), 'r') as f:
-    cloud_info = json.load(f)
+from utils import save_info, load_info
 
 
-def get_url(prometheus_url):
-    return prometheus_url
+def get_url(url):
+    return url
 
 
 def get_namespace_list(csp):
@@ -19,111 +15,66 @@ def get_namespace_list(csp):
 
 
 def recovery_send():
-    problem_flag = False
-
+    cloud_info = load_info()
     # 검사
     for idx, csp in enumerate(cloud_info.keys()):
-        if csp == 'azure':
-            azure_connect_check()
-        elif csp == 'aws':
-            aws_connect_check()
-        elif csp == 'gcp':
-            gcp_connect_check()
-
-        csp_stat = cloud_info[csp]
-        # 조건문으로 클라우드에서 응답없음 확인
-        if csp_stat['status'] is False:
-            print(f'{csp} 클라우드에서 응답이 없습니다.')
-            try:
-                # 문제가 발생한 클라우드의 인덱스+1을 csp_to_recover로 지정
-                csp_to_recover = list(cloud_info.keys())[idx+1]
-            except:
-                # 마지막 순번의 클라우드에 문제가 발생할 경우 첫 번째 클라우드로 지정
-                csp_to_recover = list(cloud_info.keys())[0]
-            # 문제가 발생한 클라우드를 cloud_info에서 삭제
-            cloud_info.pop(csp)
-            print(f'{csp} 클라우드가 모니터링 대상에서 제외되었습니다.')
-            print(list(cloud_info.keys()))
-            # problem_flag True로 변경
-            problem_flag = True
-            break
+        if len(list(cloud_info.keys())) == 1:
+            if connect_check(csp) == False:
+                print('no access')
+            else:
+                print('가용 클러스터가 1개 {} 입니다.'.format(list(cloud_info.keys())))
+                break
+        if csp in ['azure', 'aws', 'gcp']:
+            if not connect_check(csp):
+                print(f'{csp} 클라우드에서 응답이 없습니다.')
+                try:
+                    # 문제가 발생한 클라우드의 인덱스+1을 csp_to_recover로 지정
+                    csp_to_recover = list(cloud_info.keys())[idx+1]
+                except:
+                    # 마지막 순번의 클라우드에 문제가 발생할 경우 첫 번째 클라우드로 지정
+                    csp_to_recover = list(cloud_info.keys())[0]
+                # 문제가 발생한 클라우드를 cloud_info에서 삭제
+                cloud_info.pop(csp)
+                save_info(cloud_info)
+                print(
+                    f'{csp} 클라우드가 모니터링 대상에서 제외되었습니다. {list(cloud_info.keys())}를 계속 모니터링 합니다.')
+                # csp_to_recover에 복구명령 전달
+                print(f'{csp_to_recover} 클라우드에서 복구명령을 수행합니다')
+                # 복구 수행
+                recovery(cloud_info[csp_to_recover]
+                         ['api_ip'], target_namespace='test')
+                break
         else:
             print(f'{csp} 클라우드가 정상 작동하고 있습니다.')
-    print(cloud_info)
-    # problem_flag가 True이면 복구기능 수행
-    if problem_flag:
-        # csp_to_recover에 복구명령 전달
-        print(cloud_info)
-        print(f'{csp_to_recover} 클라우드에서 복구명령을 수행합니다')
-        # 복구 수행
-        recovery(cloud_info[csp_to_recover]['api_ip'], target_namespace='test')
-        print('복구가 완료되었습니다.')
 
 
-def azure_connect_check():
-    if cloud_info['azure']['status']:
+def connect_check(csp):
+    cloud_info = load_info()
+    if cloud_info[csp]['status']:
         try:
             res = requests.get(
-                "http://{}".format(get_url(cloud_info['azure']['prometheus_ip'])))
-            print("azure response status code :"+str(res.status_code))
+                "http://{}".format(get_url(cloud_info[csp]['prometheus_ip'])))
+            print("{} response status code : {}".format(
+                csp, str(res.status_code)))
+            return True
         except requests.Timeout:
-            print("azure timeout")
-            pass
+            print("{} timeout".format(csp))
+            return False
         except requests.ConnectionError:
-            print("azure connectionerror")
-            # recovery(
-            #    "http://{}".format(get_url(cloud_info['azure']['api_ip'])))
-            cloud_info['azure']['status'] = False
-            pass
-        # finally:
-        #    threading.Timer(20, azure_connect_check).start()
-
-
-def aws_connect_check():
-    if cloud_info['aws']['status']:
-        try:
-            res = requests.get(
-                "http://{}".format(get_url(cloud_info['aws']['prometheus_ip'])))
-            print("aws response status code :"+str(res.status_code))
-
-        except requests.Timeout:
-            print("aws timeout")
-            pass
-        except requests.ConnectionError:
-            print("aws connectionerror")
-            # recovery("http://{}".format(get_url(cloud_info['aws']['api_ip'])))
-            cloud_info['aws']['status'] = False
-            pass
-        # finally:
-        #    threading.Timer(20, aws_connect_check).start()
-
-
-def gcp_connect_check():
-    if cloud_info['azure']['status']:
-        try:
-            res = requests.get(
-                "http://{}".format(get_url(cloud_info['gcp']['prometheus_ip'])))
-            print("gcp response status code :"+str(res.status_code))
-
-        except requests.Timeout:
-            print("gcp timeout")
-            pass
-        except requests.ConnectionError:
-            print("gcp connectionerror")
-            # recovery("http://{}".format(get_url(cloud_info['gcp']['api_ip'])))
-            cloud_info['gcp']['status'] = False
-            pass
-        # finally:
-        #    threading.Timer(20, gcp_connect_check).start()
+            print("{} connectionerror".format(csp))
+            cloud_info[csp]['status'] = False
+            save_info(cloud_info)
+            return False
 
 
 def recovery(ip_address, **kwargs):
-    # 쿼리스트링으로 ip주소 받음
+    '''
     if 'target_namespace' not in kwargs.keys():
         target_namespace = 'default'
     else:
         target_namespace = kwargs['target_namespace']
-
+    '''
+    target_namespace = 'restore'
     # 전송할 yaml파일 경로
     yaml_file_dir = '.\\yaml\\recovery.yaml'
 
@@ -134,23 +85,25 @@ def recovery(ip_address, **kwargs):
     }
 
     def send_request(**kwargs):
-        if 'target_URL' not in kwargs.keys() or 'kind' not in kwargs.keys() or 'yaml_data' not in kwargs.keys():
+        if 'target_URL' not in kwargs.keys() or 'kind' not in kwargs.keys():
             raise Exception('필수 매개변수가 없습니다.')
 
         # requests.post("http://"+target_URL+'/'+recovery_type +
         #              f'/post?namespace={target_namespace}', json=yaml_data, headers=sample_headers)
-        print("[[http://{}/{}/post?namespace={}]]".format(kwargs['target_URL'],
-                                                          kwargs['kind'], kwargs['target_namespace']))
+        print("http://{}/{}/post?namespace={}".format(kwargs['target_URL'],
+                                                      kwargs['kind'], kwargs['target_namespace']))
+
+    send_request(target_URL=ip_address, kind='namespace',
+                 target_namespace=target_namespace)
 
     with open(os.path.join(os.path.dirname(__file__), yaml_file_dir)) as f:
         dep = list(yaml.safe_load_all(f))
         for i in range(len(dep)):
-            time.sleep(5)
-            print(dep[i])
-            recovery_type = dep[i]['kind'].lower()
+            time.sleep(1)
+            print('{}:{}에 대한 복구요청을 전송했습니다.'.format(
+                dep[i]['kind'].lower(), dep[i]['metadata']['name']))
             send_request(target_URL=ip_address,
-                         kind=recovery_type, yaml_data=(dep[i]), target_namespace=target_namespace)
-    print('okay')
+                         kind=dep[i]['kind'].lower(), yaml_data=(dep[i]), target_namespace=target_namespace)
     return 'file sent successfully'
 
 

@@ -5,7 +5,7 @@ from api import core_v1
 
 namespace_api = Blueprint('namespace', __name__)
 
-
+# 네임스페이스 생성
 @namespace_api.route('/post', methods=['POST'])
 def create_namespace():
     namespace = request.args.get('namespace')
@@ -17,35 +17,8 @@ def create_namespace():
     resp = core_v1.create_namespace(body=yaml_data)
     return {'message': "Deployment created. status='%s'" % resp.metadata.name}
 
-
-@namespace_api.route('/<namespace>', methods=['GET', 'DELETE'])
-def namespace(namespace):
-    if request.method == "GET":
-        return get_namespace()
-
-    elif request.method == "DELETE":
-        return delete_namespace(namespace)
-
-
-'''
-# 네임스페이스 생성
-
-
-def create_namespace(namespace):
-    body = {
-        "metadata": {
-            "name": namespace
-        }
-    }
-    try:
-        core_v1.create_namespace(body=body)
-    except ApiException as e:
-        return message_handler(message="fail to CREATE namespace", exception=e)
-    return message_handler(message="namespace created")
-'''
-# 클러스터 내 모든 네임스페이스 조회
-
-
+# 네임스페이스 조회
+@namespace_api.route('/get', methods=['GET'])
 def get_namespace():
     ret = core_v1.list_namespace()
     list_namespace = []

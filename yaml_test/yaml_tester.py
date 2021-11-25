@@ -1,14 +1,16 @@
-from flask.globals import request
 import requests
 import yaml
 from os import path
 
-ip_address = 'http://35.202.218.39'
-yaml_file_dir = "test.yaml"
+ip_address = 'http://34.72.9.91'
+yaml_file_dir = "test2.yaml"
 
 
 def send_request(target_URL=None, kind=None, yaml_data=None):
     requests.post(target_URL+'/'+kind+'/post', json=yaml_data)
+    print(yaml_data)
+    print()
+    print(target_URL+'/'+kind+'/post')
 
 
 with open(path.join(path.dirname(__file__), yaml_file_dir)) as f:
