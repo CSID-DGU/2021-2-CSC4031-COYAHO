@@ -3,3 +3,4 @@ Flask-SQLAlchemy
 Flask-WTF
 pyYAML
 requests
+APScheduler
