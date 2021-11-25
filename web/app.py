@@ -1,16 +1,19 @@
 from flask import Flask, render_template, request, redirect, flash, session
 from models import db
 import os
-import requests
-import yaml
-import time
+import json
 from models import Fcuser
 from flask_wtf.csrf import CSRFProtect
 from forms import RegisterForm, LoginForm, UploadForm, GrafanaForm
-import threading
+from restore import recovery_send
 
 app = Flask(__name__)
 
+with open(os.path.join(os.path.dirname(__file__), 'cloud_info.json'), 'r') as f:
+    cloud_info = json.load(f)
+
+
+'''
 
 def get_url(prometheus_url):
     return prometheus_url
@@ -21,6 +24,39 @@ cloud_info = {'azure': {'prometheus_ip': '20.196.226.18', 'api_ip': '20.196.225.
               'aws': {'prometheus_ip': 'a790d6655f63c401c86fb7f46231d257-1084231655.us-west-2.elb.amazonaws.com', 'api_ip': 'ae50df8052d55419ab5df1bd7c72e9ef-1421424937.us-west-2.elb.amazonaws.com', 'status': True},
               'gcp': {'prometheus_ip': '34.121.224.0', 'api_ip': '34.134.51.2', 'status': True}}
 
+
+# 파일 보내기
+
+
+def recovery(ip_address, **kwargs):
+    # 쿼리스트링으로 ip주소 받음
+    if 'target_namespace' not in kwargs.keys():
+        target_namespace = 'default'
+    else:
+        target_namespace = kwargs['namespace']
+
+    # 전송할 yaml파일 경로
+    yaml_file_dir = '.\\yaml\\recovery.yaml'
+
+    sample_headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.1.2222.33 Safari/537.36",
+        "Accept-Encoding": "*",
+        "Connection": "keep-alive"
+    }
+
+    def send_request(target_URL=None, kind=None, yaml_data=None):
+        requests.post("http://"+target_URL+'/'+kind +
+                      f'/post?namespace={target_namespace}', json=yaml_data, headers=sample_headers)
+
+    with open(os.path.join(os.path.dirname(__file__), yaml_file_dir)) as f:
+        dep = list(yaml.safe_load_all(f))
+        for i in range(len(dep)):
+            time.sleep(1)
+            print(dep[i])
+            send_request(target_URL=ip_address,
+                         kind=kind, yaml_data=(dep[i]))
+    print('okay')
+    return 'file sent successfully'
 
 def recovery_send():
     global cloud_info
@@ -124,6 +160,8 @@ def gcp_connect_check():
             pass
         # finally:
         #    threading.Timer(20, gcp_connect_check).start()
+
+'''
 
 
 @app.route('/')
@@ -275,39 +313,6 @@ def uploader_file():
         savepath = '.\\web\\yaml\\recovery.yaml'
         f.save(savepath)
         return 'file uploaded successfully'
-
-# 파일 보내기
-
-
-def recovery(ip_address, **kwargs):
-    # 쿼리스트링으로 ip주소 받음
-    if 'target_namespace' not in kwargs.keys():
-        target_namespace = 'default'
-    else:
-        target_namespace = kwargs['namespace']
-
-    # 전송할 yaml파일 경로
-    yaml_file_dir = '.\\yaml\\recovery.yaml'
-
-    sample_headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.1.2222.33 Safari/537.36",
-        "Accept-Encoding": "*",
-        "Connection": "keep-alive"
-    }
-
-    def send_request(target_URL=None, kind=None, yaml_data=None):
-        requests.post("http://"+target_URL+'/'+kind +
-                      f'/post?namespace={target_namespace}', json=yaml_data, headers=sample_headers)
-
-    with open(os.path.join(os.path.dirname(__file__), yaml_file_dir)) as f:
-        dep = list(yaml.safe_load_all(f))
-        for i in range(len(dep)):
-            time.sleep(1)
-            print(dep[i])
-            send_request(target_URL=ip_address,
-                         kind=kind, yaml_data=(dep[i]))
-    print('okay')
-    return 'file sent successfully'
 
 
 if __name__ == "__main__":
