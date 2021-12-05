@@ -21,8 +21,7 @@ spec:
     spec:
       containers:
         - name: flask
-          # image: gcr.io/mystic-span-326003/votetest/target-flask:0.9
-          image: coyahov2.azurecr.io/apitestv2:latest
+          image: gcr.io/mystic-span-326003/votetest/apitest
           ports:
             - containerPort: 7000
 ---

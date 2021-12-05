@@ -11,9 +11,6 @@ def create_service():
     # json으로 dictionary 형태로 변환된 yaml 파일 전달받음
     namespace = request.args.get('namespace')
     yaml_data = request.get_json()
-    # namespace가 query string으로 전달되지 않았을 경우 default namespace에 svc 생성
-    if not namespace:
-        namespace = "default"
     # svc 생성
     resp = core_v1.create_namespaced_service(
         namespace=namespace, body=yaml_data)

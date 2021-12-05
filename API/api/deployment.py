@@ -19,14 +19,12 @@ def deployment(deployment):
 def create_deployment():
     # namespace가 query string으로 전달되지 않았을 경우 default namespace에 deploy 생성
     # json으로 dictionary 형태로 변환된 yaml 파일 전달받음
-    namespace = request.args.get('namespace')
+    target_namespace = request.args.get('namespace')
     yaml_data = request.get_json()
 
-    if not namespace:
-        namespace = "default"
     # deployment 생성
     resp = apps_v1.create_namespaced_deployment(
-        body=yaml_data, namespace=namespace)
+        body=yaml_data, namespace=target_namespace)
     return {'message': "Deployment created. status='%s'" % resp.metadata.name}
 
 
