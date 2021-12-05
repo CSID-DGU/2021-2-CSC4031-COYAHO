@@ -24,13 +24,32 @@ scheduler.add_job(recovery_send, 'interval', seconds=30)
 
 app = Flask(__name__)
 
+# 파일 업로드 부분 template
+@app.route('/upload')
+def upload_file():
+    form = UploadForm()
+    return render_template('file_upload.html', form=form)
+
+# 파일 업로드 수행
+@app.route('/fileuploader', methods=['GET', 'POST'])
+def uploader_file():
+    if request.method == "POST":
+        f = request.files['file']
+        # 저장경로는 web/yaml/recovery.yaml
+        savepath = '.\\yaml\\recovery.yaml'
+        f.save(savepath)
+        return 'file uploaded successfully'
+    return redirect('/index')
+
+###################### 복구 외 기능 ######################
+
 
 @app.route('/')
 def index():
     userid = session.get('userid', None)
     return render_template("index.html", userid=userid)
 
-# 3개 클라우드의 그라파나 ip를 받아서 grafana-values.yaml 파일을 수정
+# 3개의 클라우드 ip와 api 서버 ip를 받아옴
 @app.route('/grafana', methods=['GET', 'POST'])
 def grafana():
     form = GrafanaForm()
@@ -39,7 +58,11 @@ def grafana():
         cloud_info['aws']['prometheus_ip'] = form.data.get('aws_ip')
         cloud_info['azure']['prometheus_ip'] = form.data.get('azure_ip')
         cloud_info['gcp']['prometheus_ip'] = form.data.get('gcp_ip')
+        cloud_info['aws']['api_ip'] = form.data.get('aws_api')
+        cloud_info['azure']['api_ip'] = form.data.get('azure_api')
+        cloud_info['gcp']['api_ip'] = form.data.get('gcp_api')
         save_info(cloud_info)
+
         return redirect('/register')
 
     '''
@@ -63,7 +86,6 @@ def grafana():
             yaml.dump(ym, f)
         return redirect('/waiting')
     '''
-
     return render_template('grafana_setting.html', form=form)
 
 
@@ -72,6 +94,10 @@ def grafana():
 def waiting():
     # ns 생성
     os.system('kubectl create namespace monitoring')
+    # helm 설치 
+    os.system('curl https://raw.githubusercontent.com/helm/helm/master/scripts/get > get_helm.sh')
+    os.system('chmod 700 get_helm.sh')
+    os.system('./get_helm.sh')
     # 사용자 클라우드에 helm으로 grafana 설치
     os.system(
         'helm install grafana stable/grafana -f grafana-values.yaml --namespace monitoring')
@@ -91,8 +117,7 @@ def waiting():
             break
     return redirect('/register')
 '''
-
-
+# 회원 가입 기능
 @app.route('/register', methods=['GET', 'POST'])
 def register():
 
@@ -107,13 +132,18 @@ def register():
             fcuser = Fcuser()
             fcuser.userid = form.data.get('userid')
             fcuser.password = form.data.get('password')
-            #fcuser.grafana_ip = open('grafana_ip.txt', 'r').read()
+            fcuser.grafana_ip = form.data.get('grafana_ip')
             db.session.add(fcuser)
             db.session.commit()
+
+            # 회원가입 이후 recovery check start (딕셔너리가 공백이 아닐 경우)
+            recovery_send()
+
             return render_template('index.html')
+
     return render_template('register.html', form=form)
 
-
+# 로그인 기능
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -127,13 +157,13 @@ def login():
             flash('아이디 또는 비밀번호가 일치하지 않습니다.')
     return render_template('login.html', form=form)
 
-
+# 로그아웃 기능
 @app.route('/logout', methods=['GET'])
 def logout():
     session.pop('userid', None)
     return redirect('/')
 
-
+# 각 페이지 별 path 설정
 @app.route('/aws')
 def aws():
     userid = session.get('userid', None)
@@ -192,6 +222,7 @@ if __name__ == "__main__":
 
 # apscheduler 사용 시 두 번씩 중복작동하는 문제가 있어 reloader를 꺼놓도록 설정했습니다.
 # 도커 패키징
-    # app.run(host='0.0.0.0', port=80, debug=True)
+    # app.run(host='0.0.0.0', port=80, debug=True, use_reloader=False)
+
 # localhost 테스트
     app.run(host='127.0.0.1', port=5000, debug=True, use_reloader=False)

@@ -9,6 +9,7 @@ class RegisterForm(FlaskForm):
     userid = StringField('userid', validators=[DataRequired()])
     password = PasswordField('password', validators=[
                              DataRequired(), EqualTo('re_password')])
+    grafana_ip = StringField('grafana_ip', validators=[DataRequired()])
 
     re_password = PasswordField('re_password', validators=[DataRequired()])
 
@@ -28,11 +29,14 @@ class LoginForm(FlaskForm):
 
 
 class GrafanaForm(FlaskForm):
+    # grafana form
     aws_ip = StringField('aws_ip', validators=[DataRequired()])
     azure_ip = StringField('azure', validators=[DataRequired()])
     gcp_ip = StringField('gcp_ip', validators=[DataRequired()])
 
+    aws_api = StringField('aws_api', validators=[DataRequired()])
+    azure_api = StringField('azure_api', validators=[DataRequired()])
+    gcp_api = StringField('gcp_api', validators=[DataRequired()])
 
 class UploadForm(FlaskForm):
-    file = FileField('Upload Image', validators=[
-                     FileRequired(), FileAllowed(['yaml', 'txt'])])
+    file = FileField('Upload Image', validators=[FileRequired(), FileAllowed(['yaml', 'txt'])])

@@ -13,3 +13,8 @@
 
 ![image](https://user-images.githubusercontent.com/65498159/142771461-61f1ef10-fcf2-4e60-9333-5d065b275b76.png)
 - file upload 페이지 위와 같은 디자인으로 수정했습니다.
+
+### 2021.11.25 기능 및 디자인 수정
+![dashboardhome-1125](https://user-images.githubusercontent.com/65498159/143435474-04b515cf-a27f-4055-b4ff-dccd4fd8e601.png)
+
+- 로그인 이후 HOME에서 파일 업로드 페이지 /upload로 이동할 수 있도록 수정했습니다.
