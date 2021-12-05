@@ -13,10 +13,12 @@ cloud_info = {'azure': {'prometheus_ip': '20.196.226.18', 'api_ip': '20.196.225.
               'gcp': {'prometheus_ip': '34.121.224.0', 'api_ip': '34.134.51.2', 'status': True}}
 '''
 cloud_info = {'cloud1': {'prometheus_ip': '20.196.226.18', 'api_ip': '20.196.225.177', 'status': True},
-              'cloud2': {'prometheus_ip': '', 'api_ip': '34.72.9.91', 'status': True}}
+              'cloud2': {'prometheus_ip': '35.224.146.53', 'api_ip': '35.193.214.43', 'status': True}}
 save_info(cloud_info)
 
-scheduler = BackgroundScheduler(daemon=True, timezone='Asia/Seoul')
+# APScheduler의 max_instance 에러로 복구가 실행되지 않는 경우가 있어 파라미터 2로 설정
+scheduler = BackgroundScheduler(
+    daemon=True, timezone='Asia/Seoul', job_defaults={'max_instances': 2})
 scheduler.start()
 scheduler.add_job(recovery_send, 'interval', seconds=30)
 
