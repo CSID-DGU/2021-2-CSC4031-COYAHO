@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>COYAHO: MULTI CLOUD MONITORING SYSTEM</title>
+	<!-- <link href="style.css" type="text/css" rel="stylesheet"> -->
+	<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+	<header>
+		{% if userid %}
+		<div class="navbar">
+			<div class="nav"><a href="/"><span class="HL-half">HOME</span></a></div>
+			<div class="nav"><a href="/aws"><span class="HL-move">AWS</span></a></div>
+			<div class="nav"><a href="/azure"><span class="HL-move">Azure</span></a></div>
+			<div class="nav"><a href="/gcp"><span class="HL-move">GCP</span></a></div>
+		</div>
+		{% else %}
+		<div style="min-height: 100px;"></div>
+		{% endif %}
+	</header>
+	<div class="box-home">
+		<div class="title-2" style="text-align: center;">Coyaho Dashboard for Multicloud Monitoring</div>
+		{% if userid %}
+		<div class="box-home-inner" style="display: block; padding-top: 40px;">
+			<div>
+				{{userid}}님, 환영합니다! &nbsp; <a href='/logout' class="btn-logout">Log Out</a>
+			</div>
+			<br>
+			<div>
+				복구 파일을 등록하거나 수정 &nbsp; <a href='/upload' class="btn-logout">Upload File</a>
+			</div>
+		</div>
+		{% else %}
+		<div class="box-home-inner">
+		<button type="text" onclick="location.href='/grafana'" class="btn-grad">SIGN UP</button>
+		<button type="text" onclick="location.href='/login'" class="btn-grad">Log IN</button>
+		</div>
+	</div>
+	{% endif %}
+	</div>
+	<footer>
+		Copyright (C) 2021. COYAHO. All rights reserved.&nbsp;
+		<a href="https://github.com/CSID-DGU/2021-2-CSC4031-COYAHO"><img
+				src="{{ url_for('static', filename='media/git.png')}}"></a>&nbsp;<span>github</span>
+	</footer>
+</body>
+
+</html>
